@@ -10,13 +10,13 @@ namespace Southport.Messaging.MailGun
 
         public EmailAddress(string address, string name = null)
         {
-            if (Validate(address) == false)
-            {
-                throw new ArgumentException("The email address is invalid.", nameof(address));
-            }
-
             Address = address;
             Name = name;
+        }
+
+        public bool Validate()
+        {
+            return Validate(Address);
         }
 
         public override string ToString()
