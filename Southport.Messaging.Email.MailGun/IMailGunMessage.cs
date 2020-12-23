@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Southport.Messaging.Email.Core;
 
-namespace Southport.Messaging.MailGun
+namespace Southport.Messaging.Email.MailGun
 {
     public interface IMailGunMessage : IEmailMessage
     {

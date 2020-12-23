@@ -11,7 +11,7 @@ using Southport.Messaging.Email.Core.EmailAttachments;
 using Southport.Messaging.Email.Core.Recipient;
 using Southport.Messaging.Email.Core.Result;
 
-namespace Southport.Messaging.MailGun
+namespace Southport.Messaging.Email.MailGun
 {
     public class MailGunMessage : IMailGunMessage
     {

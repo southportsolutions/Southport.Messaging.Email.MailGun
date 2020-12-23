@@ -1,4 +1,4 @@
-﻿namespace Southport.Messaging.MailGun
+﻿namespace Southport.Messaging.Email.MailGun
 {
     public interface IMailGunOptions
     {

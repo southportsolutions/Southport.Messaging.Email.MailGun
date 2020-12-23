@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Southport.Messaging.MailGun
+namespace Southport.Messaging.Email.MailGun
 {
     public class SouthportMessagingException : Exception
     {
