@@ -6,29 +6,32 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Southport.Messaging.Email.Core;
+using Southport.Messaging.Email.Core.EmailAttachments;
+using Southport.Messaging.Email.Core.Recipient;
+using Southport.Messaging.Email.Core.Result;
 
 namespace Southport.Messaging.MailGun
 {
-    public class MailGunMessage
+    public class MailGunMessage : IMailGunMessage
     {
         private readonly HttpClient _httpClient;
-        private readonly MailGunOptions _options;
+        private readonly IMailGunOptions _options;
 
         #region FromAddress
 
         [JsonIgnore]
-        public EmailAddress FromAddress { get; set; }
+        public IEmailAddress FromAddress { get; set; }
 
         public string From => FromAddress.ToString();
 
-        public MailGunMessage AddFromAddress(EmailAddress address)
+        public IEmailMessage AddFromAddress(IEmailAddress address)
         {
             FromAddress = address;
             return this;
         }
 
-        public MailGunMessage AddFromAddress(string address, string name = null)
+        public IEmailMessage AddFromAddress(string address, string name = null)
         {
             FromAddress = new EmailAddress(address, name);
             return this;
@@ -39,23 +42,25 @@ namespace Southport.Messaging.MailGun
         #region ToAddresses
 
         [JsonIgnore]    
-        public List<EmailAddress> ToAddresses { get; set; }
+        public IEnumerable<IEmailRecipient> ToAddresses { get; set; }
 
-        public string To => string.Join(";", ToAddresses);
+        public IEnumerable<IEmailRecipient> ToAddressesValid => ToAddresses.Where(e => e.EmailAddress.Validate());
+        public IEnumerable<IEmailRecipient> ToAddressesInvalid => ToAddresses.Where(e => e.EmailAddress.Validate()==false);
 
-        public MailGunMessage AddToAddress(EmailAddress address)
+        //private string To => string.Join(";", ToAddresses);
+
+        public IEmailMessage AddToAddress(IEmailRecipient address)
         {
-            ToAddresses.Add(address);
+            ((List<IEmailRecipient>)ToAddresses).Add(address);
             return this;
         }
 
-        public MailGunMessage AddToAddress(string address, string name = null)
+        public IEmailMessage AddToAddress(string address, string name = null)
         {
-            ToAddresses.Add(new EmailAddress(address, name));
-            return this;
+            return AddToAddress(new EmailRecipient(name, address));
         }
 
-        public MailGunMessage AddToAddresses(List<EmailAddress> addresses)
+        public IEmailMessage AddToAddresses(List<IEmailRecipient> addresses)
         {
             ToAddresses = addresses;
             return this;
@@ -66,22 +71,24 @@ namespace Southport.Messaging.MailGun
         #region CcAddresses
 
         [JsonIgnore]
-        public List<EmailAddress> CcAddresses { get; set; }
-        public string Cc => string.Join(";", CcAddresses);
+        public IEnumerable<IEmailRecipient> CcAddresses { get; set; }
 
-        public MailGunMessage AddCcAddress(EmailAddress address)
+        public IEnumerable<IEmailRecipient> CcAddressesValid => CcAddresses.Where(e => e.EmailAddress.Validate());
+        public IEnumerable<IEmailRecipient> CcAddressesInvalid =>  ToAddresses.Where(e => e.EmailAddress.Validate()==false);
+        //private string Cc => string.Join(";", CcAddresses);
+
+        public IEmailMessage AddCcAddress(IEmailRecipient address)
         {
-            CcAddresses.Add(address);
+            ((List<IEmailRecipient>) CcAddresses).Add(address);
             return this;
         }
 
-        public MailGunMessage AddCcAddress(string address, string name = null)
+        public IEmailMessage AddCcAddress(string address, string name = null)
         {
-            CcAddresses.Add(new EmailAddress(address, name));
-            return this;
+            return AddCcAddress(new EmailRecipient(name, address));
         }
 
-        public MailGunMessage AddCcAddresses(List<EmailAddress> addresses)
+        public IEmailMessage AddCcAddresses(List<IEmailRecipient> addresses)
         {
             CcAddresses = addresses;
             return this;
@@ -92,22 +99,24 @@ namespace Southport.Messaging.MailGun
         #region BccAddresses
 
         [JsonIgnore]
-        public List<EmailAddress> BccAddresses { get; set; }
-        public string Bcc => string.Join(";", BccAddresses);
+        public IEnumerable<IEmailRecipient> BccAddresses { get; set; }
+
+        public IEnumerable<IEmailRecipient> BccAddressesValid => BccAddresses.Where(e => e.EmailAddress.Validate());
+        public IEnumerable<IEmailRecipient> BccAddressesInvalid => BccAddresses.Where(e => e.EmailAddress.Validate()==false);
+        //private string Bcc => string.Join(";", BccAddresses);
         
-        public MailGunMessage AddBccAddress(EmailAddress address)
+        public IEmailMessage AddBccAddress(IEmailRecipient address)
         {
-            BccAddresses.Add(address);
+            ((List<IEmailRecipient>) BccAddresses).Add(address);
             return this;
         }
 
-        public MailGunMessage AddBccAddress(string address, string name = null)
+        public IEmailMessage AddBccAddress(string address, string name = null)
         {
-            BccAddresses.Add(new EmailAddress(address, name));
-            return this;
+            return AddBccAddress(new EmailRecipient(name, address));
         }
 
-        public MailGunMessage AddBccAddresses(List<EmailAddress> addresses)
+        public IEmailMessage AddBccAddresses(List<IEmailRecipient> addresses)
         {
             BccAddresses = addresses;
             return this;
@@ -119,7 +128,7 @@ namespace Southport.Messaging.MailGun
 
         public string Subject { get; private set; }
         
-        public MailGunMessage SetSubject(string subject)
+        public IEmailMessage SetSubject(string subject)
         {
             Subject = subject;
             return this;
@@ -131,7 +140,7 @@ namespace Southport.Messaging.MailGun
 
         public string Text { get; set; }
         
-        public MailGunMessage SetText(string text)
+        public IEmailMessage SetText(string text)
         {
             Text = text;
             return this;
@@ -143,7 +152,7 @@ namespace Southport.Messaging.MailGun
 
         public string Html { get; set; }
         
-        public MailGunMessage SetHtml(string html)
+        public IEmailMessage SetHtml(string html)
         {
             Html = Html;
             return this;
@@ -165,15 +174,15 @@ namespace Southport.Messaging.MailGun
 
         #region Attachments
 
-        public List<Attachment> Attachments { get; set; }
+        public List<IEmailAttachment> Attachments { get; set; }
         
-        public MailGunMessage AddAttachments(Attachment attachment)
+        public IEmailMessage AddAttachments(IEmailAttachment attachment)
         {
             Attachments.Add(attachment);
             return this;
         }
 
-        public MailGunMessage AddAttachments(List<Attachment> attachments)
+        public IEmailMessage AddAttachments(List<IEmailAttachment> attachments)
         {
             Attachments = attachments;
             return this;
@@ -183,11 +192,11 @@ namespace Southport.Messaging.MailGun
 
         #region Template
 
-        public string Template { get; set; }
+        public string TemplateId { get; set; }
         
-        public MailGunMessage SetTemplate(string template)
+        public IEmailMessage SetTemplate(string template)
         {
-            Template = template;
+            TemplateId = template;
             return this;
         }
 
@@ -198,7 +207,7 @@ namespace Southport.Messaging.MailGun
         [JsonProperty("t:version")]
         public string TemplateVersion { get; set; }
         
-        public MailGunMessage SetTemplateVersion(string templateVersion)
+        public IEmailMessage SetTemplateVersion(string templateVersion)
         {
             TemplateVersion = templateVersion;
             return this;
@@ -211,7 +220,7 @@ namespace Southport.Messaging.MailGun
         [JsonProperty("t:text")]
         public string TemplateText { get; set; }
         
-        public MailGunMessage SetTemplateText(string templateText)
+        public IEmailMessage SetTemplateText(string templateText)
         {
             TemplateText = templateText;
             return this;
@@ -255,7 +264,7 @@ namespace Southport.Messaging.MailGun
         [JsonProperty("o:deliverytime")]
         public DateTime? DeliveryTime { get; set; }
         
-        public MailGunMessage SetDeliveryTime(DateTime deliveryTime)
+        public IEmailMessage SetDeliveryTime(DateTime deliveryTime)
         {
             DeliveryTime = deliveryTime;
             return this;
@@ -268,7 +277,7 @@ namespace Southport.Messaging.MailGun
         [JsonProperty("o:testmode")]
         public bool? TestMode { get; set; }
 
-        public MailGunMessage SetTestMode(bool testMode)
+        public IEmailMessage SetTestMode(bool testMode)
         {
             TestMode = testMode;
             return this;
@@ -281,7 +290,7 @@ namespace Southport.Messaging.MailGun
         [JsonProperty("o:tracking")]
         public bool Tracking { get; set; }
 
-        public MailGunMessage SetTracking(bool tracking)
+        public IEmailMessage SetTracking(bool tracking)
         {
             Tracking = tracking;
             return this;
@@ -294,7 +303,7 @@ namespace Southport.Messaging.MailGun
         [JsonProperty("o:tracking-clicks")]
         public bool TrackingClicks { get; set; }
         
-        public MailGunMessage SetTrackingClicks(bool tracking)
+        public IEmailMessage SetTrackingClicks(bool tracking)
         {
             TrackingClicks = tracking;
             return this;
@@ -306,8 +315,8 @@ namespace Southport.Messaging.MailGun
 
         [JsonProperty("o:tracking-opens")]
         public bool TrackingOpens { get; set; }
-        
-        public MailGunMessage SetTrackingOpens(bool tracking)
+
+        public IEmailMessage SetTrackingOpens(bool tracking)
         {
             TrackingOpens = tracking;
             return this;
@@ -341,6 +350,18 @@ namespace Southport.Messaging.MailGun
 
         #endregion
 
+        #region Custom Variables
+        
+        public Dictionary<string, string> CustomArguments { get; }
+        
+        public MailGunMessage AddCustomVariable(string name, string value)
+        {
+            CustomArguments.Add(name, value);
+            return this;
+        }
+
+        #endregion
+
         #region Custom Headers
 
         [JsonProperty("h:X-My-Header")]
@@ -351,240 +372,252 @@ namespace Southport.Messaging.MailGun
             CustomHeaders.Add(key, header);
             return this;
         }
-        
-        public MailGunMessage SetReplyTo(string emailAddress)
+
+        public MailGunMessage AddRecipientVariable(string emailAddress, string key, string value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEmailMessage SetReplyTo(string emailAddress)
         {
             CustomHeaders.Add("Reply-To", emailAddress);
             return this;
+        }
+
+        public IEmailMessage AddCustomArgument(string key, string value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEmailMessage AddCustomArguments(Dictionary<string, string> customArguments)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
 
         #region RecipientVariableDictionary
 
-        [JsonIgnore]
-        public Dictionary<string, Dictionary<string, string>> RecipientVariableDictionary { get; set; }
-        [JsonProperty(PropertyName = "recipient-variables")]
-        public string RecipientVariables { get; private set; }
-        
-        public MailGunMessage AddRecipientVariable(string emailAddress, string key, string value)
-        {
-            if (RecipientVariableDictionary.ContainsKey(emailAddress) == false)
-            {
-                RecipientVariableDictionary[emailAddress] = new Dictionary<string, string>();
-            }
-
-            var recipientDictionary = RecipientVariableDictionary[emailAddress];
-            if (recipientDictionary == null)
-            {
-                recipientDictionary = new Dictionary<string, string>();
-                RecipientVariableDictionary[emailAddress] = recipientDictionary;
-            }
-
-            recipientDictionary[key] = value;
-            return this;
-        }
-        
-        public MailGunMessage AddRecipientVariable(string emailAddress, Dictionary<string, string> variables)
-        {
-            RecipientVariableDictionary[emailAddress] = variables;
-            return this;
-        }
+        private Dictionary<string, Dictionary<string, object>> RecipientVariableDictionary { get; set; }
 
         #endregion
 
 
-        public MailGunMessage(HttpClient httpClient, MailGunOptions options)
+        public MailGunMessage(HttpClient httpClient, IMailGunOptions options)
         {
             _httpClient = httpClient;
             _options = options;
-            ToAddresses = new List<EmailAddress>();
-            CcAddresses = new List<EmailAddress>();
-            BccAddresses = new List<EmailAddress>();
-            Attachments = new List<Attachment>();
+            ToAddresses = new List<IEmailRecipient>();
+            CcAddresses = new List<IEmailRecipient>();
+            BccAddresses = new List<IEmailRecipient>();
+            Attachments = new List<IEmailAttachment>();
             CustomHeaders = new Dictionary<string, string>();
+            RecipientVariableDictionary = new Dictionary<string, Dictionary<string, object>>();
+            Tags = new List<string>();
 
             Tracking = true;
             TrackingClicks = true;
             TrackingOpens = true;
         }
 
-        public async Task<HttpResponseMessage> Send(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<IEmailResult>> Send(CancellationToken cancellationToken = default)
+        {
+            return await Send(_options.Domain, cancellationToken);
+        }
+
+        public async Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default)
         {
             if (FromAddress == null)
             {
-                throw new Exception("The from address is required.");
+                throw new SouthportMessagingException("The from address is required.");
             }
 
-            if (ToAddresses.Any(e=>e.Validate()==false) 
-                && CcAddresses.Any(e=>e.Validate()==false) 
-                && BccAddresses.Any(e=>e.Validate()==false))
+            if (ToAddressesValid.Any()==false && CcAddressesValid.Any()==false && BccAddressesValid.Any()==false)
             {
-                throw new Exception("There must be at least 1 recipient.");
+                throw new SouthportMessagingException("There must be at least 1 recipient.");
             }
 
-            if (string.IsNullOrWhiteSpace(Html) && string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(Template))
+            if (string.IsNullOrWhiteSpace(Html) && string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(TemplateId))
             {
-                throw new Exception("The message must have a message or reference a template.");
+                throw new SouthportMessagingException("The message must have a message or reference a template.");
             }
 
-            if (RecipientVariableDictionary.Count > 0)
+            var formContents = GetMultipartFormDataContent();
+
+            var results = new List<IEmailResult>();
+            foreach (var formContent in formContents)
             {
-                var recipientJson = new JObject();
-                foreach (var recipient in RecipientVariableDictionary)
+                //var json = JsonConvert.SerializeObject(this, settings: new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
+                var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") {Content = formContent.Value};
+                message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
+                var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
+                results.Add(new EmailResult(formContent.Key, responseMessage));
+            }
+
+
+            return results;
+        }
+
+        private Dictionary<IEmailRecipient, MultipartFormDataContent> GetMultipartFormDataContent()
+        {
+            var contents = new Dictionary<IEmailRecipient, MultipartFormDataContent>();
+            var toAddresses = ToAddressesValid;
+            if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses) == false)
+            {
+                var emailAddresses = _options.TestEmailAddresses.Split(',');
+                toAddresses = emailAddresses.Select(emailAddress => new EmailRecipient(emailAddress)).ToList();
+            }
+
+            foreach (var emailRecipient in toAddresses)
+            {
+                // ReSharper disable once UseObjectOrCollectionInitializer
+                var content = new MultipartFormDataContent($"----------{Guid.NewGuid():N}");
+
+                #region Addresses
+
+                content.Add(new StringContent(From), "from");
+                if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses))
                 {
-                    var recipientJObject = new JObject();
-                    recipientJson.Add(new JProperty(recipient.Key, recipientJObject));
-                    foreach (var variable in recipient.Value)
-                    {
-                        recipientJObject.Add(new JProperty(variable.Key, variable.Value));
-                    }
+                    AddAddressToMultipartForm(emailRecipient, "to", ref content);
+                    AddAddressesToMultipartForm(CcAddressesValid, "cc", ref content);
+                    AddAddressesToMultipartForm(BccAddressesValid, "bcc", ref content);
+                }
+                else
+                {
+                    var emailAddresses = _options.TestEmailAddresses.Split(',');
+                    var testAddresses = emailAddresses.Select(emailAddress => new EmailRecipient(emailAddress)).ToList();
+                    AddAddressesToMultipartForm(testAddresses, "to", ref content);
                 }
 
-                RecipientVariables = recipientJson.ToString();
+                #endregion
+
+                #region Subject
+
+                content.Add(new StringContent(Subject), "subject");
+
+                #endregion
+
+                #region Text/HTML
+
+                AddStringContent(Text, "text", ref content);
+                AddStringContent(Html, "html", ref content);
+                AddStringContent(AmpHtml, "amp-html", ref content);
+
+                #endregion
+
+                #region Attachments
+
+                foreach (var attachment in Attachments)
+                {
+                    var streamContent = new StreamContent(attachment.Content);
+                    streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
+                    content.Add(streamContent, "attachment", attachment.AttachmentFilename);
+                }
+
+                #endregion
+
+                #region Template
+
+                AddStringContent(TemplateId, "template", ref content);
+                AddStringContent(TemplateVersion, "t:version", ref content);
+                AddStringContent(TemplateText, "t:text", ref content);
+
+                #endregion
+
+                #region Tags
+
+                foreach (var tag in Tags)
+                {
+                    AddStringContent(tag, "o:tag", ref content);
+                }
+
+                #endregion
+
+                #region Dkim
+
+                if (Dkim != null)
+                {
+                    var value = Dkim == true ? "yes" : "no";
+                    AddStringContent(value, "o:dkim", ref content);
+                }
+
+                #endregion
+
+                #region DeliveryTime
+
+                if (DeliveryTime != null)
+                {
+                    var value = DeliveryTime.Value.ToString("R");
+                    AddStringContent(value, "o:deliverytime", ref content);
+                }
+
+                #endregion
+
+                #region TestMode
+
+                if (TestMode == true)
+                {
+                    AddStringContent("yes", "o:testmode", ref content);
+                }
+
+                #endregion
+
+                #region Tracking
+
+                AddStringContent(Tracking ? "yes" : "no", "o:tracking", ref content);
+                AddStringContent(TrackingClicks ? "yes" : "no", "o:tracking-clicks", ref content);
+                AddStringContent(TrackingOpens ? "yes" : "no", "o:tracking-opens", ref content);
+
+                #endregion
+
+                #region Security (TLS/Cert Verification)
+
+                AddStringContent(RequireTls ? "yes" : "no", "o:require-tls", ref content);
+                AddStringContent(SkipVerification ? "yes" : "no", "o:skip-verification", ref content);
+
+                #endregion
+
+                #region Custom Headers
+
+                foreach (var customHeader in CustomHeaders)
+                {
+                    AddStringContent(customHeader.Value, $"h:{customHeader.Key}", ref content);
+                }
+
+                #endregion
+
+                #region Recipient Variables
+
+                if (emailRecipient.Substitutions.Any())
+                {
+                    var recipientVariables = JsonConvert.SerializeObject(emailRecipient.Substitutions);
+                    var stringContent = new StringContent(recipientVariables, Encoding.UTF8, "application/json");
+                    content.Add(stringContent, "h:X-Mailgun-Variables");
+                }
+
+                #endregion
+
+                contents[emailRecipient] = content;
             }
 
-            //var json = JsonConvert.SerializeObject(this, settings: new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
-            var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{_options.Domain}/messages") {Content = new MultipartFormDataContent()};
-            message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
-
-            var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                return responseMessage;
-            }
-
-            throw new Exception($"Unable to send emails. {responseMessage}");
+            return contents;
         }
 
-        private MultipartFormDataContent GetMultipartFormDataContent()
-        {
-            // ReSharper disable once UseObjectOrCollectionInitializer
-            var content = new MultipartFormDataContent($"----------{Guid.NewGuid():N}");
-
-            #region Addresses
-
-            content.Add(new StringContent(From), "from");
-            AddAddressesToMultipartForm(ToAddresses, "to", ref content);
-            AddAddressesToMultipartForm(CcAddresses, "cc", ref content);
-            AddAddressesToMultipartForm(BccAddresses, "bcc", ref content);
-
-            #endregion
-
-            #region Subject
-
-            content.Add(new StringContent(Subject), "subject");
-
-            #endregion
-
-            #region Text/HTML
-
-            AddStringContent(Text, "text", ref content);
-            AddStringContent(Html, "html", ref content);
-            AddStringContent(AmpHtml, "amp-html", ref content);
-
-            #endregion
-
-            #region Attachments
-
-            foreach (var attachment in Attachments)
-            {
-                var streamContent = new StreamContent(attachment.Content);
-                streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
-                content.Add(streamContent, "attachment", attachment.AttachmentFilename);
-            }
-
-            #endregion
-
-            #region Template
-
-            AddStringContent(Template, "template", ref content);
-            AddStringContent(TemplateVersion, "t:version", ref content);
-            AddStringContent(TemplateText, "t:text", ref content);
-
-            #endregion
-
-            #region Tags
-
-            foreach (var tag in Tags)
-            {
-                AddStringContent(tag, "o:tag", ref content);
-            }
-
-            #endregion
-
-            #region Dkim
-
-            if (Dkim != null)
-            {
-                var value = Dkim == true ? "yes" : "no";
-                AddStringContent(value, "o:dkim", ref content);
-            }
-
-            #endregion
-
-            #region DeliveryTime
-
-            if (DeliveryTime != null)
-            {
-                var value = DeliveryTime.Value.ToString("R");
-                AddStringContent(value, "o:deliverytime", ref content);
-            }
-
-            #endregion
-
-            #region TestMode
-
-            if (TestMode == true)
-            {
-                AddStringContent("yes", "o:testmode", ref content);
-            }
-
-            #endregion
-
-            #region Tracking
-
-            AddStringContent(Tracking ? "yes" : "no", "o:tracking", ref content);
-            AddStringContent(TrackingClicks ? "yes" : "no", "o:tracking-clicks", ref content);
-            AddStringContent(TrackingOpens ? "yes" : "no", "o:tracking-opens", ref content);
-
-            #endregion
-
-            #region Security (TLS/Cert Verification)
-
-            AddStringContent(RequireTls ? "yes" : "no", "o:require-tls", ref content);
-            AddStringContent(SkipVerification ? "yes" : "no", "o:skip-verification", ref content);
-
-            #endregion
-
-            #region Custom Headers
-
-            foreach (var customHeader in CustomHeaders)
-            {
-                AddStringContent(customHeader.Value, $"h:{customHeader.Key}", ref content);   
-            }
-
-            #endregion
-
-            #region Recipient Variables
-
-            if (RecipientVariableDictionary.Any())
-            {
-                var recipientVariables = JsonConvert.SerializeObject(RecipientVariableDictionary);
-                AddStringContent(recipientVariables, "recipient-variables", ref content);
-            }
-
-            #endregion
-
-            return content;
-        }
-
-        private void AddAddressesToMultipartForm(IEnumerable<EmailAddress> emailAddresses, string key, ref MultipartFormDataContent content)
+        private void AddAddressesToMultipartForm(IEnumerable<IEmailRecipient> emailAddresses, string key, ref MultipartFormDataContent content)
         {
             
             foreach (var emailAddress in emailAddresses)
             {
-                AddStringContent(emailAddress.ToString(), key, ref content);
+                AddAddressToMultipartForm(emailAddress, key, ref content);
+            }
+        }
+
+        private void AddAddressToMultipartForm(IEmailRecipient emailAddress, string key, ref MultipartFormDataContent content)
+        {
+            AddStringContent(emailAddress.EmailAddress.ToString(), key, ref content);
+            if (emailAddress.Substitutions.Any())
+            {
+                RecipientVariableDictionary.Add(emailAddress.EmailAddress.Address, emailAddress.Substitutions);
             }
         }
 
@@ -598,100 +631,100 @@ namespace Southport.Messaging.MailGun
             content.Add(new StringContent(stringContent), key);
         }
 
-        private Dictionary<string, string> GetDictionary()
-        {
-            var dictionary = new Dictionary<string, string>
-            {
-                ["from"] = From,
-                ["to"] = To,
-                ["subject"] = Subject,
-                ["o:testmode"] = TestMode.ToString(),
-                ["o:tracking"] = Tracking.ToString(),
-                ["o:tracking-clicks"] = TrackingClicks.ToString(),
-                ["o:tracking-opens"] = TrackingOpens.ToString(),
-                ["o:skip-verification"] = SkipVerification.ToString()
-            };
+        //private Dictionary<string, string> GetDictionary()
+        //{
+        //    var dictionary = new Dictionary<string, string>
+        //    {
+        //        ["from"] = From,
+        //        ["to"] = To,
+        //        ["subject"] = Subject,
+        //        ["o:testmode"] = TestMode.ToString(),
+        //        ["o:tracking"] = Tracking.ToString(),
+        //        ["o:tracking-clicks"] = TrackingClicks.ToString(),
+        //        ["o:tracking-opens"] = TrackingOpens.ToString(),
+        //        ["o:skip-verification"] = SkipVerification.ToString()
+        //    };
 
 
-            if (CcAddresses.Any())
-            {
-                dictionary["cc"] = Cc;
-            }
+        //    if (CcAddresses.Any())
+        //    {
+        //        dictionary["cc"] = Cc;
+        //    }
 
-            if (BccAddresses.Any())
-            {
-                dictionary["bcc"] = Bcc;
-            }
+        //    if (BccAddresses.Any())
+        //    {
+        //        dictionary["bcc"] = Bcc;
+        //    }
 
-            if (string.IsNullOrWhiteSpace(Text) == false)
-            {
-                dictionary["text"] = Text;
-            }
+        //    if (string.IsNullOrWhiteSpace(Text) == false)
+        //    {
+        //        dictionary["text"] = Text;
+        //    }
 
-            if (string.IsNullOrWhiteSpace(Html) == false)
-            {
-                dictionary["html"] = Html;
-            }
+        //    if (string.IsNullOrWhiteSpace(Html) == false)
+        //    {
+        //        dictionary["html"] = Html;
+        //    }
 
-            if (string.IsNullOrWhiteSpace(Template) == false)
-            {
-                dictionary["template"] = Template;
-                if (RecipientVariableDictionary.Any())
-                {
-                    var recipientVariables = RecipientVariableDictionary.First();
-                    foreach (var variable in recipientVariables.Value)
-                    {
-                        dictionary[$"v:{variable.Key}"] = $"%recipient.{variable.Key}%";
-                    }
-                }
-            }
+        //    if (string.IsNullOrWhiteSpace(Template) == false)
+        //    {
+        //        dictionary["template"] = Template;
+        //        if (RecipientVariableDictionary.Any())
+        //        {
+        //            var recipientVariables = RecipientVariableDictionary.First();
+        //            foreach (var variable in recipientVariables.Value)
+        //            {
+        //                dictionary[$"v:{variable.Key}"] = $"%recipient.{variable.Key}%";
+        //            }
+        //        }
+        //    }
 
-            if (string.IsNullOrWhiteSpace(TemplateVersion) == false)
-            {
-                dictionary["t:version"] = TemplateVersion;
-            }
+        //    if (string.IsNullOrWhiteSpace(TemplateVersion) == false)
+        //    {
+        //        dictionary["t:version"] = TemplateVersion;
+        //    }
 
-            if (string.IsNullOrWhiteSpace(TemplateText) == false)
-            {
-                dictionary["t:text"] = TemplateText;
-            }
+        //    if (string.IsNullOrWhiteSpace(TemplateText) == false)
+        //    {
+        //        dictionary["t:text"] = TemplateText;
+        //    }
 
-            if (string.IsNullOrWhiteSpace(Tag) == false)
-            {
-                dictionary["o:tag"] = Tag;
-            }
+        //    if (string.IsNullOrWhiteSpace(Tag) == false)
+        //    {
+        //        dictionary["o:tag"] = Tag;
+        //    }
 
-            if (TestMode != null)
-            {
-                dictionary["o:testmode"] = TestMode.ToString();
-            }
+        //    if (TestMode != null)
+        //    {
+        //        dictionary["o:testmode"] = TestMode.ToString();
+        //    }
 
-            if (Dkim != null)
-            {
-                dictionary["o:dkim"] = Dkim.ToString();
-            }
+        //    if (Dkim != null)
+        //    {
+        //        dictionary["o:dkim"] = Dkim.ToString();
+        //    }
 
-            if (RequireTls != null)
-            {
-                dictionary["o:require-tls"] = RequireTls.ToString();
-            }
+        //    if (RequireTls != null)
+        //    {
+        //        dictionary["o:require-tls"] = RequireTls.ToString();
+        //    }
 
-            if (DeliveryTime != null)
-            {
-                dictionary["o:deliverytime"] = DeliveryTime?.ToString("ddd, dd MMM yyyy hh:mm:ss ") + "GMT";
-            }
+        //    if (DeliveryTime != null)
+        //    {
+        //        dictionary["o:deliverytime"] = DeliveryTime?.ToString("ddd, dd MMM yyyy hh:mm:ss ") + "GMT";
+        //    }
 
-            if (string.IsNullOrWhiteSpace(CustomHeaders) == false)
-            {
-                dictionary["h:X-My-Header"] = CustomHeaders;
-            }
+        //    if (string.IsNullOrWhiteSpace(CustomHeaders) == false)
+        //    {
+        //        dictionary["h:X-My-Header"] = CustomHeaders;
+        //    }
 
-            if (string.IsNullOrWhiteSpace(RecipientVariables) == false)
-            {
-                dictionary["recipient-variables"] = RecipientVariables;
-            }
+        //    if (string.IsNullOrWhiteSpace(RecipientVariables) == false)
+        //    {
+        //        dictionary["recipient-variables"] = RecipientVariables;
+        //    }
 
-            return dictionary;
-        }
+        //    return dictionary;
+        //}
     }
 }
