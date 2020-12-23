@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Southport.Messaging.Email.Core.Recipient;
-using Southport.Messaging.MailGun;
 using Xunit;
 using Xunit.Abstractions;
 

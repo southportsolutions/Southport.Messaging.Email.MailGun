@@ -1,5 +1,4 @@
-﻿using Southport.Messaging.MailGun;
-
+﻿
 namespace Southport.Messaging.Email.MailGun.Tests
 {
     public class MailGunOptions : IMailGunOptions
