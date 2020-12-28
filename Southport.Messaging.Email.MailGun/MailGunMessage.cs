@@ -19,8 +19,7 @@ namespace Southport.Messaging.Email.MailGun
         private readonly IMailGunOptions _options;
 
         #region FromAddress
-
-        [JsonIgnore]
+        
         public IEmailAddress FromAddress { get; set; }
 
         public string From => FromAddress.ToString();
@@ -40,8 +39,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region ToAddresses
-
-        [JsonIgnore]    
+  
         public IEnumerable<IEmailRecipient> ToAddresses { get; set; }
 
         public IEnumerable<IEmailRecipient> ToAddressesValid => ToAddresses.Where(e => e.EmailAddress.Validate());
@@ -69,8 +67,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region CcAddresses
-
-        [JsonIgnore]
+        
         public IEnumerable<IEmailRecipient> CcAddresses { get; set; }
 
         public IEnumerable<IEmailRecipient> CcAddressesValid => CcAddresses.Where(e => e.EmailAddress.Validate());
@@ -97,8 +94,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region BccAddresses
-
-        [JsonIgnore]
+        
         public IEnumerable<IEmailRecipient> BccAddresses { get; set; }
 
         public IEnumerable<IEmailRecipient> BccAddressesValid => BccAddresses.Where(e => e.EmailAddress.Validate());
@@ -203,8 +199,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region TemplateVersion
-
-        [JsonProperty("t:version")]
+        
         public string TemplateVersion { get; set; }
         
         public IEmailMessage SetTemplateVersion(string templateVersion)
@@ -216,8 +211,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region TemplateText
-
-        [JsonProperty("t:text")]
+        
         public string TemplateText { get; set; }
         
         public IEmailMessage SetTemplateText(string templateText)
@@ -247,8 +241,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region Dkim
-
-        [JsonProperty("o:dkim")]
+        
         public bool? Dkim { get; set; }
         
         public MailGunMessage SetDkim(bool dkim)
@@ -260,8 +253,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region DeliveryTime
-
-        [JsonProperty("o:deliverytime")]
+        
         public DateTime? DeliveryTime { get; set; }
         
         public IEmailMessage SetDeliveryTime(DateTime deliveryTime)
@@ -273,8 +265,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region TestMode
-
-        [JsonProperty("o:testmode")]
+        
         public bool? TestMode { get; set; }
 
         public IEmailMessage SetTestMode(bool testMode)
@@ -286,8 +277,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region Tracking
-
-        [JsonProperty("o:tracking")]
+        
         public bool Tracking { get; set; }
 
         public IEmailMessage SetTracking(bool tracking)
@@ -299,8 +289,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region TrackingClicks
-
-        [JsonProperty("o:tracking-clicks")]
+        
         public bool TrackingClicks { get; set; }
         
         public IEmailMessage SetTrackingClicks(bool tracking)
@@ -312,8 +301,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region TrackingOpens
-
-        [JsonProperty("o:tracking-opens")]
+        
         public bool TrackingOpens { get; set; }
 
         public IEmailMessage SetTrackingOpens(bool tracking)
@@ -325,8 +313,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region RequireTls
-
-        [JsonProperty("o:require-tls")]
+        
         public bool RequireTls { get; set; }
         
         public MailGunMessage SetRequireTls(bool requireTls)
@@ -338,8 +325,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region SkipVerification
-
-        [JsonProperty("o:skip-verification")]
+        
         public bool SkipVerification { get; set; }
         
         public MailGunMessage SetSkipVerification(bool verification)
@@ -363,8 +349,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region Custom Headers
-
-        [JsonProperty("h:X-My-Header")]
+        
         public Dictionary<string, string> CustomHeaders { get; set; }
         
         public MailGunMessage AddHeader(string key, string header)
@@ -447,7 +432,6 @@ namespace Southport.Messaging.Email.MailGun
             var results = new List<IEmailResult>();
             foreach (var formContent in formContents)
             {
-                //var json = JsonConvert.SerializeObject(this, settings: new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
                 var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") {Content = formContent.Value};
                 message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
                 var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
@@ -507,7 +491,16 @@ namespace Southport.Messaging.Email.MailGun
 
                 #region Attachments
 
+                //global attachments
                 foreach (var attachment in Attachments)
+                {
+                    var streamContent = new StreamContent(attachment.Content);
+                    streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
+                    content.Add(streamContent, "attachment", attachment.AttachmentFilename);
+                }
+
+                //recipient specific attachments
+                foreach (var attachment in emailRecipient.Attachments)
                 {
                     var streamContent = new StreamContent(attachment.Content);
                     streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
