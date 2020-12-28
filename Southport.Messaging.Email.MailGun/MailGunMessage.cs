@@ -388,7 +388,7 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
 
-        public MailGunMessage(HttpClient httpClient, IMailGunOptions options)
+        public MailGunMessage(HttpClient httpClient, IMailGunOptions options, bool tracking = true, bool trackingClicks = true, bool trackingOpens = true)
         {
             _httpClient = httpClient;
             _options = options;
@@ -398,11 +398,12 @@ namespace Southport.Messaging.Email.MailGun
             Attachments = new List<IEmailAttachment>();
             CustomHeaders = new Dictionary<string, string>();
             RecipientVariableDictionary = new Dictionary<string, Dictionary<string, object>>();
+            CustomArguments = new Dictionary<string, string>();
             Tags = new List<string>();
 
-            Tracking = true;
-            TrackingClicks = true;
-            TrackingOpens = true;
+            Tracking = tracking;
+            TrackingClicks = trackingClicks;
+            TrackingOpens = trackingOpens;
         }
 
         public async Task<IEnumerable<IEmailResult>> Send(CancellationToken cancellationToken = default)
@@ -437,7 +438,6 @@ namespace Southport.Messaging.Email.MailGun
                 var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
                 results.Add(new EmailResult(formContent.Key, responseMessage));
             }
-
 
             return results;
         }
@@ -567,6 +567,20 @@ namespace Southport.Messaging.Email.MailGun
 
                 AddStringContent(RequireTls ? "yes" : "no", "o:require-tls", ref content);
                 AddStringContent(SkipVerification ? "yes" : "no", "o:skip-verification", ref content);
+
+                #endregion
+
+                #region Custom Arguments
+
+                foreach (var argument in emailRecipient.CustomArguments)
+                {
+                    AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
+                }
+
+                foreach (var argument in CustomArguments.Where(c=>emailRecipient.CustomArguments.ContainsKey(c.Key)==false))
+                {
+                    AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
+                }
 
                 #endregion
 
