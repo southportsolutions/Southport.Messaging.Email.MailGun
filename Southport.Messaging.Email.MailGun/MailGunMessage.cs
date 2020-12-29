@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -437,6 +438,8 @@ namespace Southport.Messaging.Email.MailGun
                 message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
                 var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
                 results.Add(new EmailResult(formContent.Key, responseMessage));
+                
+                formContent.Value.Dispose();
             }
 
             return results;
@@ -494,7 +497,7 @@ namespace Southport.Messaging.Email.MailGun
                 //global attachments
                 foreach (var attachment in Attachments)
                 {
-                    var streamContent = new StreamContent(attachment.Content);
+                    var streamContent = new StreamContent(GetStream(attachment.Content));
                     streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
                     content.Add(streamContent, "attachment", attachment.AttachmentFilename);
                 }
@@ -502,7 +505,7 @@ namespace Southport.Messaging.Email.MailGun
                 //recipient specific attachments
                 foreach (var attachment in emailRecipient.Attachments)
                 {
-                    var streamContent = new StreamContent(attachment.Content);
+                    var streamContent = new StreamContent(GetStream(attachment.Content));
                     streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
                     content.Add(streamContent, "attachment", attachment.AttachmentFilename);
                 }
@@ -608,6 +611,16 @@ namespace Southport.Messaging.Email.MailGun
             }
 
             return contents;
+        }
+
+        private Stream GetStream(string content)
+        {
+            var stream = new MemoryStream();
+            using var sw = new StreamWriter(stream, Encoding.UTF8);
+            sw.Write(content);
+            sw.Flush();//otherwise you are risking empty stream
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
         }
 
         private void AddAddressesToMultipartForm(IEnumerable<IEmailRecipient> emailAddresses, string key, ref MultipartFormDataContent content)

@@ -10,12 +10,12 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageReleaseNotes>Added custom argument handling. </PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.0-beta4</Version>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Southport.Messaging.Email.Core" Version="1.1.0-beta3" />
+    <PackageReference Include="Southport.Messaging.Email.Core" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
