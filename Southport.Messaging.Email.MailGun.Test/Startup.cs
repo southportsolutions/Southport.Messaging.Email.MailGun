@@ -24,11 +24,6 @@ namespace Southport.Messaging.Email.MailGun.Test
 
                 if (string.IsNullOrWhiteSpace(Options.ApiKey))
                 {
-                    foreach (DictionaryEntry variable in Environment.GetEnvironmentVariables())
-                    {
-                        Console.WriteLine($"{variable.Key}:{variable.Value}");
-                    }
-
                     Options.ApiKey = Environment.GetEnvironmentVariable("MAILGUNAPIKEY");
                     Options.Domain = Environment.GetEnvironmentVariable("MAILGUNDOMAIN");
                 }

@@ -467,6 +467,10 @@ namespace Southport.Messaging.Email.MailGun
                 var emailAddresses = _options.TestEmailAddresses.Split(',');
                 
                 var firstRecipient = toAddresses.First();
+
+                var customArgs = firstRecipient.CustomArguments;
+                customArgs["IsTest"] = "true";
+
                 toAddresses = emailAddresses.Select(emailAddress => 
                     new EmailRecipient(emailAddress.Trim(), firstRecipient.Substitutions, firstRecipient.CustomArguments)).ToList();
                 CcAddresses = new List<IEmailRecipient>();
