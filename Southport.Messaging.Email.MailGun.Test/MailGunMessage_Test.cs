@@ -7,7 +7,7 @@ using Southport.Messaging.Email.Core.Recipient;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Southport.Messaging.Email.MailGun.Tests
+namespace Southport.Messaging.Email.MailGun.Test
 {
     public class MailGunMessageTest : IDisposable
     {

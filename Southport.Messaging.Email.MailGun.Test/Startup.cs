@@ -2,7 +2,7 @@
 using System.IO;
 using Microsoft.Extensions.Configuration;
 
-namespace Southport.Messaging.Email.MailGun.Tests
+namespace Southport.Messaging.Email.MailGun.Test
 {
     public static class Startup
     {
