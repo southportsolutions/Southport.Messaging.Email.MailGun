@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace Southport.Messaging.Email.MailGun
     {
         private readonly HttpClient _httpClient;
         private readonly IMailGunOptions _options;
+        private List<Stream> _streams = new List<Stream>();
 
         #region FromAddress
         
@@ -442,6 +444,11 @@ namespace Southport.Messaging.Email.MailGun
                 formContent.Value.Dispose();
             }
 
+            foreach (var stream in _streams)
+            {
+                await stream.DisposeAsync();
+            }
+
             return results;
         }
 
@@ -452,7 +459,17 @@ namespace Southport.Messaging.Email.MailGun
             if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses) == false)
             {
                 var emailAddresses = _options.TestEmailAddresses.Split(',');
-                toAddresses = emailAddresses.Select(emailAddress => new EmailRecipient(emailAddress)).ToList();
+                
+                var firstRecipient = toAddresses.First();
+                toAddresses = emailAddresses.Select(emailAddress => 
+                    new EmailRecipient(emailAddress.Trim(), firstRecipient.Substitutions, firstRecipient.CustomArguments)).ToList();
+                CcAddresses = new List<IEmailRecipient>();
+                BccAddresses = new List<IEmailRecipient>();
+            }
+
+
+            if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses)==false)
+            {
             }
 
             foreach (var emailRecipient in toAddresses)
@@ -463,18 +480,9 @@ namespace Southport.Messaging.Email.MailGun
                 #region Addresses
 
                 content.Add(new StringContent(From), "from");
-                if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses))
-                {
                     AddAddressToMultipartForm(emailRecipient, "to", ref content);
                     AddAddressesToMultipartForm(CcAddressesValid, "cc", ref content);
                     AddAddressesToMultipartForm(BccAddressesValid, "bcc", ref content);
-                }
-                else
-                {
-                    var emailAddresses = _options.TestEmailAddresses.Split(',');
-                    var testAddresses = emailAddresses.Select(emailAddress => new EmailRecipient(emailAddress)).ToList();
-                    AddAddressesToMultipartForm(testAddresses, "to", ref content);
-                }
 
                 #endregion
 
@@ -616,10 +624,11 @@ namespace Southport.Messaging.Email.MailGun
         private Stream GetStream(string content)
         {
             var stream = new MemoryStream();
-            using var sw = new StreamWriter(stream, Encoding.UTF8);
+            var sw = new StreamWriter(stream, Encoding.UTF8);
             sw.Write(content);
             sw.Flush();//otherwise you are risking empty stream
             stream.Seek(0, SeekOrigin.Begin);
+            _streams.Add(stream);
             return stream;
         }
 
@@ -650,101 +659,5 @@ namespace Southport.Messaging.Email.MailGun
 
             content.Add(new StringContent(stringContent), key);
         }
-
-        //private Dictionary<string, string> GetDictionary()
-        //{
-        //    var dictionary = new Dictionary<string, string>
-        //    {
-        //        ["from"] = From,
-        //        ["to"] = To,
-        //        ["subject"] = Subject,
-        //        ["o:testmode"] = TestMode.ToString(),
-        //        ["o:tracking"] = Tracking.ToString(),
-        //        ["o:tracking-clicks"] = TrackingClicks.ToString(),
-        //        ["o:tracking-opens"] = TrackingOpens.ToString(),
-        //        ["o:skip-verification"] = SkipVerification.ToString()
-        //    };
-
-
-        //    if (CcAddresses.Any())
-        //    {
-        //        dictionary["cc"] = Cc;
-        //    }
-
-        //    if (BccAddresses.Any())
-        //    {
-        //        dictionary["bcc"] = Bcc;
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(Text) == false)
-        //    {
-        //        dictionary["text"] = Text;
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(Html) == false)
-        //    {
-        //        dictionary["html"] = Html;
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(Template) == false)
-        //    {
-        //        dictionary["template"] = Template;
-        //        if (RecipientVariableDictionary.Any())
-        //        {
-        //            var recipientVariables = RecipientVariableDictionary.First();
-        //            foreach (var variable in recipientVariables.Value)
-        //            {
-        //                dictionary[$"v:{variable.Key}"] = $"%recipient.{variable.Key}%";
-        //            }
-        //        }
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(TemplateVersion) == false)
-        //    {
-        //        dictionary["t:version"] = TemplateVersion;
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(TemplateText) == false)
-        //    {
-        //        dictionary["t:text"] = TemplateText;
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(Tag) == false)
-        //    {
-        //        dictionary["o:tag"] = Tag;
-        //    }
-
-        //    if (TestMode != null)
-        //    {
-        //        dictionary["o:testmode"] = TestMode.ToString();
-        //    }
-
-        //    if (Dkim != null)
-        //    {
-        //        dictionary["o:dkim"] = Dkim.ToString();
-        //    }
-
-        //    if (RequireTls != null)
-        //    {
-        //        dictionary["o:require-tls"] = RequireTls.ToString();
-        //    }
-
-        //    if (DeliveryTime != null)
-        //    {
-        //        dictionary["o:deliverytime"] = DeliveryTime?.ToString("ddd, dd MMM yyyy hh:mm:ss ") + "GMT";
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(CustomHeaders) == false)
-        //    {
-        //        dictionary["h:X-My-Header"] = CustomHeaders;
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(RecipientVariables) == false)
-        //    {
-        //        dictionary["recipient-variables"] = RecipientVariables;
-        //    }
-
-        //    return dictionary;
-        //}
     }
 }
