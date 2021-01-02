@@ -434,20 +434,26 @@ namespace Southport.Messaging.Email.MailGun
             var formContents = GetMultipartFormDataContent();
 
             var results = new List<IEmailResult>();
-            foreach (var formContent in formContents)
+            try
             {
-                var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") {Content = formContent.Value};
-                message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
-                var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
-                results.Add(new EmailResult(formContent.Key, responseMessage));
+                foreach (var formContent in formContents)
+                {
+                    var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") {Content = formContent.Value};
+                    message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
+                    var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
+                    results.Add(new EmailResult(formContent.Key, responseMessage));
                 
-                formContent.Value.Dispose();
+                    formContent.Value.Dispose();
+                }
+            }
+            finally
+            {
+                foreach (var stream in _streams)
+                {
+                    await stream.DisposeAsync();
+                }
             }
 
-            foreach (var stream in _streams)
-            {
-                await stream.DisposeAsync();
-            }
 
             return results;
         }

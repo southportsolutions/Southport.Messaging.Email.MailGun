@@ -26,6 +26,11 @@ namespace Southport.Messaging.Email.MailGun.Test
                     Options.ApiKey = Environment.GetEnvironmentVariable("MailGunApiKey");
                     Options.Domain = Environment.GetEnvironmentVariable("MailGunDomain");
                 }
+
+                if (string.IsNullOrEmpty(Options.ApiKey))
+                {
+                    throw new Exception("Unable to get the MailGun API Key.");
+                }
             }
 
             return Options;
