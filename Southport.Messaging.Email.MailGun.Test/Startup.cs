@@ -23,8 +23,8 @@ namespace Southport.Messaging.Email.MailGun.Test
 
                 if (string.IsNullOrWhiteSpace(Options.ApiKey))
                 {
-                    Options.ApiKey = Environment.GetEnvironmentVariable("MailGunApiKey");
-                    Options.Domain = Environment.GetEnvironmentVariable("MailGunDomain");
+                    Options.ApiKey = Environment.GetEnvironmentVariable("MAILGUNAPIKEY");
+                    Options.Domain = Environment.GetEnvironmentVariable("MAILGUNDOMAIN");
                 }
 
                 if (string.IsNullOrEmpty(Options.ApiKey))
