@@ -7,6 +7,8 @@ name: $(Build.SourceBranch).$(Date:yy)$(DayOfYear)$(Rev:.r)
 
 variables:
   vmImage: 'ubuntu-latest'
+  projectName: 'Southport.Messaging.Email.MailGun'
+  buildConfiguration: 'Release'
 
 stages:
 #------------------------Build Library - Main------------------------------------------
@@ -15,9 +17,7 @@ stages:
   dependsOn: []
   condition: startsWith(variables['Build.SourceBranch'], 'refs/heads/main')
   variables:
-    projectName: 'Southport.Messaging.Email.Core'
-    buildConfiguration: 'Release'
-    artifactName: 'library'
+    artifactName: 'dev-library'
   jobs:
   - template: 'DevOps/build.yml'
 
@@ -27,9 +27,7 @@ stages:
   dependsOn: []
   condition: startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')
   variables:
-    projectName: 'Southport.Messaging.Email.Core'
-    buildConfiguration: 'Release'
-    artifactName: 'library'
+    artifactName: 'release-library'
   jobs:
   - template: 'DevOps/build.yml'
 
@@ -39,7 +37,7 @@ stages:
   dependsOn: 'BuildLibraryRelease'
   condition: succeeded()
   variables:
-    environment: nuget-publish-approval
-    artifact: library
+    environment: 'nuget-publish-approval'
+    artifact: 'release-library'
   jobs:
   - template: 'DevOps/deploy.yml'
