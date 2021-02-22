@@ -32,7 +32,7 @@ stages:
   - template: 'DevOps/build.yml'
 
 #------------------------Deploy LIBRARY------------------------------------------
-- stage: 'ReleaseLibraryRelease'
+- stage: 'PublishLibraryRelease'
   displayName: 'Deploy to prod (release)'
   dependsOn: 'BuildLibraryRelease'
   condition: succeeded()
