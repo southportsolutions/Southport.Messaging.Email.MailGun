@@ -1,0 +1,32 @@
+jobs:
+- job: Build
+  pool:
+    vmImage: $(vmImage)
+    
+  steps:    
+    - task: NuGetToolInstaller@1
+      displayName: 'Install NuGet'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore Nuget'
+      inputs:
+        command: 'restore'
+        projects: '**/*$(projectName).csproj'
+        feedsToUse: 'config'
+        nugetConfigPath: 'nuget.config'
+
+    - task: DotNetCoreCLI@2
+      displayName: Build and Pack
+      inputs:
+          command: 'pack'
+          projects: '**/*$(projectName).csproj'
+          arguments: --output $(Build.ArtifactStagingDirectory) --configuration $(buildConfiguration)
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Test'
+      inputs:
+        command: 'test'
+        projects: '**/*Test.csproj'
+
+    - publish: $(Build.ArtifactStagingDirectory)
+      artifact: '$(artifactName)'

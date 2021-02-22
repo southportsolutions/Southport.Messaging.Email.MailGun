@@ -1,21 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net5.0</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
     <Authors>Robert Anstett</Authors>
     <Company>Southport Solutions, LLC</Company>
     <Copyright>2020</Copyright>
     <Description>MailGun Implementation of the Southport.Messaging.Email.Core</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>Fixed the attachments stream issue and the test email address substitution issue.</PackageReleaseNotes>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.1</Version>
+    <PackageReleaseNotes>Fixed test emails missing attachments.</PackageReleaseNotes>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Southport.Messaging.Email.Core" Version="1.1.0" />
+    <PackageReference Include="Southport.Messaging.Email.Core" Version="1.6.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,5 +24,6 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
+
 
 </Project>

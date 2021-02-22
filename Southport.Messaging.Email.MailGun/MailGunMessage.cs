@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,8 +44,8 @@ namespace Southport.Messaging.Email.MailGun
   
         public IEnumerable<IEmailRecipient> ToAddresses { get; set; }
 
-        public IEnumerable<IEmailRecipient> ToAddressesValid => ToAddresses.Where(e => e.EmailAddress.Validate());
-        public IEnumerable<IEmailRecipient> ToAddressesInvalid => ToAddresses.Where(e => e.EmailAddress.Validate()==false);
+        public IEnumerable<IEmailRecipient> ToAddressesValid => ToAddresses.Where(e => e.EmailAddress.IsValid);
+        public IEnumerable<IEmailRecipient> ToAddressesInvalid => ToAddresses.Where(e => e.EmailAddress.IsValid==false);
 
         //private string To => string.Join(";", ToAddresses);
 
@@ -58,7 +57,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public IEmailMessage AddToAddress(string address, string name = null)
         {
-            return AddToAddress(new EmailRecipient(name, address));
+            return AddToAddress(new EmailRecipient(address, name));
         }
 
         public IEmailMessage AddToAddresses(List<IEmailRecipient> addresses)
@@ -73,8 +72,8 @@ namespace Southport.Messaging.Email.MailGun
         
         public IEnumerable<IEmailRecipient> CcAddresses { get; set; }
 
-        public IEnumerable<IEmailRecipient> CcAddressesValid => CcAddresses.Where(e => e.EmailAddress.Validate());
-        public IEnumerable<IEmailRecipient> CcAddressesInvalid =>  ToAddresses.Where(e => e.EmailAddress.Validate()==false);
+        public IEnumerable<IEmailRecipient> CcAddressesValid => CcAddresses.Where(e => e.EmailAddress.IsValid);
+        public IEnumerable<IEmailRecipient> CcAddressesInvalid =>  ToAddresses.Where(e => e.EmailAddress.IsValid==false);
         //private string Cc => string.Join(";", CcAddresses);
 
         public IEmailMessage AddCcAddress(IEmailRecipient address)
@@ -85,7 +84,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public IEmailMessage AddCcAddress(string address, string name = null)
         {
-            return AddCcAddress(new EmailRecipient(name, address));
+            return AddCcAddress(new EmailRecipient(address, name));
         }
 
         public IEmailMessage AddCcAddresses(List<IEmailRecipient> addresses)
@@ -100,8 +99,8 @@ namespace Southport.Messaging.Email.MailGun
         
         public IEnumerable<IEmailRecipient> BccAddresses { get; set; }
 
-        public IEnumerable<IEmailRecipient> BccAddressesValid => BccAddresses.Where(e => e.EmailAddress.Validate());
-        public IEnumerable<IEmailRecipient> BccAddressesInvalid => BccAddresses.Where(e => e.EmailAddress.Validate()==false);
+        public IEnumerable<IEmailRecipient> BccAddressesValid => BccAddresses.Where(e => e.EmailAddress.IsValid);
+        public IEnumerable<IEmailRecipient> BccAddressesInvalid => BccAddresses.Where(e => e.EmailAddress.IsValid==false);
         //private string Bcc => string.Join(";", BccAddresses);
         
         public IEmailMessage AddBccAddress(IEmailRecipient address)
@@ -112,7 +111,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public IEmailMessage AddBccAddress(string address, string name = null)
         {
-            return AddBccAddress(new EmailRecipient(name, address));
+            return AddBccAddress(new EmailRecipient(address, name));
         }
 
         public IEmailMessage AddBccAddresses(List<IEmailRecipient> addresses)
@@ -450,7 +449,11 @@ namespace Southport.Messaging.Email.MailGun
             {
                 foreach (var stream in _streams)
                 {
+#if NET5_0 || NETSTANDARD2_1
                     await stream.DisposeAsync();
+#else
+                    stream.Dispose();
+#endif
                 }
             }
 
@@ -461,20 +464,31 @@ namespace Southport.Messaging.Email.MailGun
         private Dictionary<IEmailRecipient, MultipartFormDataContent> GetMultipartFormDataContent()
         {
             var contents = new Dictionary<IEmailRecipient, MultipartFormDataContent>();
-            var toAddresses = ToAddressesValid;
+            var toAddresses = ToAddressesValid.ToList();
             if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses) == false)
             {
-                var emailAddresses = _options.TestEmailAddresses.Split(',');
-                
-                var firstRecipient = toAddresses.First();
 
-                var customArgs = firstRecipient.CustomArguments;
-                customArgs["IsTest"] = "true";
+                var testEmailAddresses = _options.TestEmailAddresses.Split(',');
+                var toAddressesTemp = new List<IEmailRecipient>();
+                foreach (var toAddress in toAddresses)
+                {
+                    var customArgs = toAddress.CustomArguments;
+                    customArgs["IsTest"] = "true";
 
-                toAddresses = emailAddresses.Select(emailAddress => 
-                    new EmailRecipient(emailAddress.Trim(), firstRecipient.Substitutions, firstRecipient.CustomArguments)).ToList();
-                CcAddresses = new List<IEmailRecipient>();
-                BccAddresses = new List<IEmailRecipient>();
+                    toAddressesTemp.AddRange(testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim(), substitutions: toAddress.Substitutions,  customArguments: toAddress.CustomArguments, attachments: toAddress.Attachments)));
+                }
+
+                if (CcAddresses.Any())
+                {
+                    CcAddresses = testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim()));
+                }
+
+                if (BccAddresses.Any())
+                {
+                    BccAddresses = testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim()));
+                }
+
+                toAddresses = toAddressesTemp;
             }
 
 

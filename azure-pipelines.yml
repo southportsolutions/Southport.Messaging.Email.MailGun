@@ -1,0 +1,45 @@
+# only trigger build through main or release branch
+trigger:
+- main
+- release/*
+
+name: $(Build.SourceBranch).$(Date:yy)$(DayOfYear)$(Rev:.r) 
+
+variables:
+  vmImage: 'ubuntu-latest'
+
+stages:
+#------------------------Build Library - Main------------------------------------------
+- stage: 'BuildLibraryMain'
+  displayName: 'Build - Library'
+  dependsOn: []
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/heads/main')
+  variables:
+    projectName: 'Southport.Messaging.Email.Core'
+    buildConfiguration: 'Release'
+    artifactName: 'library'
+  jobs:
+  - template: 'DevOps/build.yml'
+
+#------------------------Build Library - Release------------------------------------------
+- stage: 'BuildLibraryRelease'
+  displayName: 'Build - Library'
+  dependsOn: []
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')
+  variables:
+    projectName: 'Southport.Messaging.Email.Core'
+    buildConfiguration: 'Release'
+    artifactName: 'library'
+  jobs:
+  - template: 'DevOps/build.yml'
+
+#------------------------Deploy LIBRARY------------------------------------------
+- stage: 'ReleaseLibraryRelease'
+  displayName: 'Deploy to prod (release)'
+  dependsOn: 'BuildLibraryRelease'
+  condition: succeeded()
+  variables:
+    environment: nuget-publish-approval
+    artifact: library
+  jobs:
+  - template: 'DevOps/deploy.yml'

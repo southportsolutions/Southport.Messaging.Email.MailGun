@@ -1,0 +1,20 @@
+jobs:
+- deployment: DeployAppPackage
+  pool:
+    vmImage: $(vmImage)
+  environment: $(environment)
+  strategy:
+    runOnce:
+      deploy:
+         steps:
+         - download: current
+           displayName: 'Download artifact'
+           artifact: '$(artifact)'
+         
+         - task: NuGetCommand@2
+           displayName: 'Push Nuget'
+           inputs:
+             command: 'push'
+             packagesToPush: '$(Pipeline.Workspace)/$(artifact)/**/*.nupkg;!$(Pipeline.Workspace)/$(artifact)/**/*.symbols.nupkg'
+             nuGetFeedType: 'external'
+             publishFeedCredentials: 'nuget.org'
