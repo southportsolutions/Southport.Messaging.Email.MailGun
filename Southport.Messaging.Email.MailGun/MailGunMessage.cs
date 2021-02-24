@@ -152,7 +152,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public IEmailMessage SetHtml(string html)
         {
-            Html = Html;
+            Html = html;
             return this;
         }
 
