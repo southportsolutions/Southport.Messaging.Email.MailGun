@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Southport.Messaging.Email.Core;
 
 namespace Southport.Messaging.Email.MailGun
@@ -24,5 +23,11 @@ namespace Southport.Messaging.Email.MailGun
         MailGunMessage SetRequireTls(bool requireTls);
         MailGunMessage SetSkipVerification(bool verification);
         MailGunMessage AddHeader(string key, string header);
+        
+        //TODO: Move to Core
+        IEmailMessage SetText(string text, Dictionary<string, object> substitutions);
+        IEmailMessage SetHtml(string html, Dictionary<string, object> substitutions);
+        MailGunMessage SetAmpHtml(string ampHtml, Dictionary<string, object> substitutions);
+
     }
 }

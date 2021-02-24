@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HandlebarsDotNet;
 using Newtonsoft.Json;
 using Southport.Messaging.Email.Core;
 using Southport.Messaging.Email.Core.EmailAttachments;
@@ -143,6 +144,13 @@ namespace Southport.Messaging.Email.MailGun
             Text = text;
             return this;
         }
+        
+        public IEmailMessage SetText(string text, Dictionary<string, object> substitutions)
+        {
+            var compileFunc = Handlebars.Compile(text);
+            Text = compileFunc(substitutions);
+            return this;
+        }
 
         #endregion
 
@@ -155,6 +163,13 @@ namespace Southport.Messaging.Email.MailGun
             Html = html;
             return this;
         }
+        
+        public IEmailMessage SetHtml(string html, Dictionary<string, object> substitutions)
+        {
+            var compileFunc = Handlebars.Compile(html);
+            Html = compileFunc(substitutions);
+            return this;
+        }
 
         #endregion
 
@@ -165,6 +180,13 @@ namespace Southport.Messaging.Email.MailGun
         public MailGunMessage SetAmpHtml(string ampHtml)
         {
             AmpHtml = ampHtml;
+            return this;
+        }
+        
+        public MailGunMessage SetAmpHtml(string ampHtml, Dictionary<string, object> substitutions)
+        {
+            var compileFunc = Handlebars.Compile(ampHtml);
+            AmpHtml = compileFunc(substitutions);
             return this;
         }
 

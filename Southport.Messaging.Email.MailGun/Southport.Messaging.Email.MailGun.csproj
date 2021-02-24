@@ -10,10 +10,11 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReleaseNotes>Fixed test emails missing attachments.</PackageReleaseNotes>
-    <Version>1.0.3</Version>
+    <Version>1.0.4-beta1</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Handlebars.Net" Version="2.0.4" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Southport.Messaging.Email.Core" Version="1.6.0" />
   </ItemGroup>
