@@ -19,7 +19,7 @@ jobs:
       displayName: Build and Pack
       inputs:
           command: 'pack'
-          projects: '**/*$(projectName).csproj'
+          packagesToPack: '**/*$(projectName).csproj'
           arguments: --output $(Build.ArtifactStagingDirectory) --configuration $(buildConfiguration)
 
     - task: DotNetCoreCLI@2
