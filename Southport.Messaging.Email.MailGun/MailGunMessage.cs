@@ -140,7 +140,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public IMailGunMessage SetText(string text)
         {
-            Text = text;
+            Text = text.Trim();
             return this;
         }
 
@@ -152,7 +152,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public IMailGunMessage SetHtml(string html)
         {
-            Html = html;
+            Html = html.Trim();
             return this;
         }
 
@@ -164,7 +164,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public IMailGunMessage SetAmpHtml(string ampHtml)
         {
-            AmpHtml = ampHtml;
+            AmpHtml = ampHtml.Trim();
             return this;
         }
 
