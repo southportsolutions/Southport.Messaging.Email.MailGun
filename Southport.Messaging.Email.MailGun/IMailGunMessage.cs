@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Southport.Messaging.Email.Core;
+using Southport.Messaging.Email.Core.Result;
 
 namespace Southport.Messaging.Email.MailGun
 {
-    public interface IMailGunMessage : IEmailMessage
+    public interface IMailGunMessage : IEmailMessage<IMailGunMessage>
     {
         string AmpHtml { get; set; }
 
@@ -15,19 +18,17 @@ namespace Southport.Messaging.Email.MailGun
         bool RequireTls { get; set; }
         bool SkipVerification { get; set; }
         Dictionary<string, string> CustomHeaders { get; set; }
-        MailGunMessage SetAmpHtml(string ampHtml);
-        MailGunMessage SetTag(string tag);
-        MailGunMessage SetTags(List<string> tags);
-        MailGunMessage SetDkim(bool dkim);
 
-        MailGunMessage SetRequireTls(bool requireTls);
-        MailGunMessage SetSkipVerification(bool verification);
-        MailGunMessage AddHeader(string key, string header);
-        
-        //TODO: Move to Core
-        IEmailMessage SetText(string text, Dictionary<string, object> substitutions);
-        IEmailMessage SetHtml(string html, Dictionary<string, object> substitutions);
-        MailGunMessage SetAmpHtml(string ampHtml, Dictionary<string, object> substitutions);
+        IMailGunMessage SetAmpHtml(string ampHtml);
+        IMailGunMessage SetTag(string tag);
+        IMailGunMessage SetTags(List<string> tags);
+        IMailGunMessage SetDkim(bool dkim);
+
+        IMailGunMessage SetRequireTls(bool requireTls);
+        IMailGunMessage SetSkipVerification(bool verification);
+        IMailGunMessage AddHeader(string key, string header);
+
+        Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default);
 
     }
 }

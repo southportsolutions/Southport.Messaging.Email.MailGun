@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HandlebarsDotNet;
 using Newtonsoft.Json;
-using Southport.Messaging.Email.Core;
 using Southport.Messaging.Email.Core.EmailAttachments;
 using Southport.Messaging.Email.Core.Recipient;
 using Southport.Messaging.Email.Core.Result;
@@ -27,13 +26,13 @@ namespace Southport.Messaging.Email.MailGun
 
         public string From => FromAddress.ToString();
 
-        public IEmailMessage AddFromAddress(IEmailAddress address)
+        public IMailGunMessage AddFromAddress(IEmailAddress address)
         {
             FromAddress = address;
             return this;
         }
 
-        public IEmailMessage AddFromAddress(string address, string name = null)
+        public IMailGunMessage AddFromAddress(string address, string name = null)
         {
             FromAddress = new EmailAddress(address, name);
             return this;
@@ -50,18 +49,18 @@ namespace Southport.Messaging.Email.MailGun
 
         //private string To => string.Join(";", ToAddresses);
 
-        public IEmailMessage AddToAddress(IEmailRecipient address)
+        public IMailGunMessage AddToAddress(IEmailRecipient address)
         {
             ((List<IEmailRecipient>)ToAddresses).Add(address);
             return this;
         }
 
-        public IEmailMessage AddToAddress(string address, string name = null)
+        public IMailGunMessage AddToAddress(string address, string name = null)
         {
             return AddToAddress(new EmailRecipient(address, name));
         }
 
-        public IEmailMessage AddToAddresses(List<IEmailRecipient> addresses)
+        public IMailGunMessage AddToAddresses(List<IEmailRecipient> addresses)
         {
             ToAddresses = addresses;
             return this;
@@ -77,18 +76,18 @@ namespace Southport.Messaging.Email.MailGun
         public IEnumerable<IEmailRecipient> CcAddressesInvalid =>  ToAddresses.Where(e => e.EmailAddress.IsValid==false);
         //private string Cc => string.Join(";", CcAddresses);
 
-        public IEmailMessage AddCcAddress(IEmailRecipient address)
+        public IMailGunMessage AddCcAddress(IEmailRecipient address)
         {
             ((List<IEmailRecipient>) CcAddresses).Add(address);
             return this;
         }
 
-        public IEmailMessage AddCcAddress(string address, string name = null)
+        public IMailGunMessage AddCcAddress(string address, string name = null)
         {
             return AddCcAddress(new EmailRecipient(address, name));
         }
 
-        public IEmailMessage AddCcAddresses(List<IEmailRecipient> addresses)
+        public IMailGunMessage AddCcAddresses(List<IEmailRecipient> addresses)
         {
             CcAddresses = addresses;
             return this;
@@ -104,18 +103,18 @@ namespace Southport.Messaging.Email.MailGun
         public IEnumerable<IEmailRecipient> BccAddressesInvalid => BccAddresses.Where(e => e.EmailAddress.IsValid==false);
         //private string Bcc => string.Join(";", BccAddresses);
         
-        public IEmailMessage AddBccAddress(IEmailRecipient address)
+        public IMailGunMessage AddBccAddress(IEmailRecipient address)
         {
             ((List<IEmailRecipient>) BccAddresses).Add(address);
             return this;
         }
 
-        public IEmailMessage AddBccAddress(string address, string name = null)
+        public IMailGunMessage AddBccAddress(string address, string name = null)
         {
             return AddBccAddress(new EmailRecipient(address, name));
         }
 
-        public IEmailMessage AddBccAddresses(List<IEmailRecipient> addresses)
+        public IMailGunMessage AddBccAddresses(List<IEmailRecipient> addresses)
         {
             BccAddresses = addresses;
             return this;
@@ -127,7 +126,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public string Subject { get; private set; }
         
-        public IEmailMessage SetSubject(string subject)
+        public IMailGunMessage SetSubject(string subject)
         {
             Subject = subject;
             return this;
@@ -139,13 +138,13 @@ namespace Southport.Messaging.Email.MailGun
 
         public string Text { get; set; }
         
-        public IEmailMessage SetText(string text)
+        public IMailGunMessage SetText(string text)
         {
             Text = text;
             return this;
         }
-        
-        public IEmailMessage SetText(string text, Dictionary<string, object> substitutions)
+
+        public IMailGunMessage SetText(string text, Dictionary<string, object> substitutions)
         {
             var compileFunc = Handlebars.Compile(text);
             Text = compileFunc(substitutions);
@@ -158,13 +157,13 @@ namespace Southport.Messaging.Email.MailGun
 
         public string Html { get; set; }
         
-        public IEmailMessage SetHtml(string html)
+        public IMailGunMessage SetHtml(string html)
         {
             Html = html;
             return this;
         }
         
-        public IEmailMessage SetHtml(string html, Dictionary<string, object> substitutions)
+        public IMailGunMessage SetHtml(string html, Dictionary<string, object> substitutions)
         {
             var compileFunc = Handlebars.Compile(html);
             Html = compileFunc(substitutions);
@@ -177,13 +176,13 @@ namespace Southport.Messaging.Email.MailGun
 
         public string AmpHtml { get; set; }
         
-        public MailGunMessage SetAmpHtml(string ampHtml)
+        public IMailGunMessage SetAmpHtml(string ampHtml)
         {
             AmpHtml = ampHtml;
             return this;
         }
         
-        public MailGunMessage SetAmpHtml(string ampHtml, Dictionary<string, object> substitutions)
+        public IMailGunMessage SetAmpHtml(string ampHtml, Dictionary<string, object> substitutions)
         {
             var compileFunc = Handlebars.Compile(ampHtml);
             AmpHtml = compileFunc(substitutions);
@@ -196,13 +195,13 @@ namespace Southport.Messaging.Email.MailGun
 
         public List<IEmailAttachment> Attachments { get; set; }
         
-        public IEmailMessage AddAttachments(IEmailAttachment attachment)
+        public IMailGunMessage AddAttachments(IEmailAttachment attachment)
         {
             Attachments.Add(attachment);
             return this;
         }
 
-        public IEmailMessage AddAttachments(List<IEmailAttachment> attachments)
+        public IMailGunMessage AddAttachments(List<IEmailAttachment> attachments)
         {
             Attachments = attachments;
             return this;
@@ -214,7 +213,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public string TemplateId { get; set; }
         
-        public IEmailMessage SetTemplate(string template)
+        public IMailGunMessage SetTemplate(string template)
         {
             TemplateId = template;
             return this;
@@ -226,7 +225,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public string TemplateVersion { get; set; }
         
-        public IEmailMessage SetTemplateVersion(string templateVersion)
+        public IMailGunMessage SetTemplateVersion(string templateVersion)
         {
             TemplateVersion = templateVersion;
             return this;
@@ -238,7 +237,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public string TemplateText { get; set; }
         
-        public IEmailMessage SetTemplateText(string templateText)
+        public IMailGunMessage SetTemplateText(string templateText)
         {
             TemplateText = templateText;
             return this;
@@ -250,13 +249,13 @@ namespace Southport.Messaging.Email.MailGun
 
         public List<string> Tags { get; set; }
         
-        public MailGunMessage SetTag(string tag)
+        public IMailGunMessage SetTag(string tag)
         {
             Tags.Add(tag);
             return this;
         }
         
-        public MailGunMessage SetTags(List<string> tags)
+        public IMailGunMessage SetTags(List<string> tags)
         {
             Tags = tags;
             return this;
@@ -268,7 +267,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public bool? Dkim { get; set; }
         
-        public MailGunMessage SetDkim(bool dkim)
+        public IMailGunMessage SetDkim(bool dkim)
         {
             Dkim = dkim;
             return this;
@@ -280,7 +279,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public DateTime? DeliveryTime { get; set; }
         
-        public IEmailMessage SetDeliveryTime(DateTime deliveryTime)
+        public IMailGunMessage SetDeliveryTime(DateTime deliveryTime)
         {
             DeliveryTime = deliveryTime;
             return this;
@@ -292,7 +291,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public bool? TestMode { get; set; }
 
-        public IEmailMessage SetTestMode(bool testMode)
+        public IMailGunMessage SetTestMode(bool testMode)
         {
             TestMode = testMode;
             return this;
@@ -304,7 +303,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public bool Tracking { get; set; }
 
-        public IEmailMessage SetTracking(bool tracking)
+        public IMailGunMessage SetTracking(bool tracking)
         {
             Tracking = tracking;
             return this;
@@ -316,7 +315,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public bool TrackingClicks { get; set; }
         
-        public IEmailMessage SetTrackingClicks(bool tracking)
+        public IMailGunMessage SetTrackingClicks(bool tracking)
         {
             TrackingClicks = tracking;
             return this;
@@ -328,7 +327,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public bool TrackingOpens { get; set; }
 
-        public IEmailMessage SetTrackingOpens(bool tracking)
+        public IMailGunMessage SetTrackingOpens(bool tracking)
         {
             TrackingOpens = tracking;
             return this;
@@ -340,7 +339,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public bool RequireTls { get; set; }
         
-        public MailGunMessage SetRequireTls(bool requireTls)
+        public IMailGunMessage SetRequireTls(bool requireTls)
         {
             RequireTls = requireTls;
             return this;
@@ -352,7 +351,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public bool SkipVerification { get; set; }
         
-        public MailGunMessage SetSkipVerification(bool verification)
+        public IMailGunMessage SetSkipVerification(bool verification)
         {
             SkipVerification = verification;
             return this;
@@ -376,7 +375,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public Dictionary<string, string> CustomHeaders { get; set; }
         
-        public MailGunMessage AddHeader(string key, string header)
+        public IMailGunMessage AddHeader(string key, string header)
         {
             CustomHeaders.Add(key, header);
             return this;
@@ -387,18 +386,18 @@ namespace Southport.Messaging.Email.MailGun
             throw new NotImplementedException();
         }
 
-        public IEmailMessage SetReplyTo(string emailAddress)
+        public IMailGunMessage SetReplyTo(string emailAddress)
         {
             CustomHeaders.Add("Reply-To", emailAddress);
             return this;
         }
 
-        public IEmailMessage AddCustomArgument(string key, string value)
+        public IMailGunMessage AddCustomArgument(string key, string value)
         {
             throw new NotImplementedException();
         }
 
-        public IEmailMessage AddCustomArguments(Dictionary<string, string> customArguments)
+        public IMailGunMessage AddCustomArguments(Dictionary<string, string> customArguments)
         {
             throw new NotImplementedException();
         }
@@ -430,12 +429,19 @@ namespace Southport.Messaging.Email.MailGun
             TrackingOpens = trackingOpens;
         }
 
+        #region Send
+
         public async Task<IEnumerable<IEmailResult>> Send(CancellationToken cancellationToken = default)
         {
             return await Send(_options.Domain, cancellationToken);
         }
 
         public async Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default)
+        {
+            return await Send(domain, false, cancellationToken);
+        }
+
+        private async Task<IEnumerable<IEmailResult>> Send(string domain, bool substitute = false, CancellationToken cancellationToken = default)
         {
             if (FromAddress == null)
             {
@@ -452,7 +458,7 @@ namespace Southport.Messaging.Email.MailGun
                 throw new SouthportMessagingException("The message must have a message or reference a template.");
             }
 
-            var formContents = GetMultipartFormDataContent();
+            var formContents = GetMultipartFormDataContent(substitute);
 
             var results = new List<IEmailResult>();
             try
@@ -478,41 +484,23 @@ namespace Southport.Messaging.Email.MailGun
 #endif
                 }
             }
-
-
+            
             return results;
         }
+        
+        public async Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default)
+        {
+            return await Send(domain, true, cancellationToken);
+        }
 
-        private Dictionary<IEmailRecipient, MultipartFormDataContent> GetMultipartFormDataContent()
+        #endregion
+
+        #region GetMultipartFormDataContent
+
+        private Dictionary<IEmailRecipient, MultipartFormDataContent> GetMultipartFormDataContent(bool substitute = false)
         {
             var contents = new Dictionary<IEmailRecipient, MultipartFormDataContent>();
-            var toAddresses = ToAddressesValid.ToList();
-            if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses) == false)
-            {
-
-                var testEmailAddresses = _options.TestEmailAddresses.Split(',');
-                var toAddressesTemp = new List<IEmailRecipient>();
-                foreach (var toAddress in toAddresses)
-                {
-                    var customArgs = toAddress.CustomArguments;
-                    customArgs["IsTest"] = "true";
-
-                    toAddressesTemp.AddRange(testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim(), substitutions: toAddress.Substitutions,  customArguments: toAddress.CustomArguments, attachments: toAddress.Attachments)));
-                }
-
-                if (CcAddresses.Any())
-                {
-                    CcAddresses = testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim()));
-                }
-
-                if (BccAddresses.Any())
-                {
-                    BccAddresses = testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim()));
-                }
-
-                toAddresses = toAddressesTemp;
-            }
-
+            var toAddresses = GetTestAddresses(ToAddressesValid.ToList());
 
             if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses)==false)
             {
@@ -520,151 +508,248 @@ namespace Southport.Messaging.Email.MailGun
 
             foreach (var emailRecipient in toAddresses)
             {
-                // ReSharper disable once UseObjectOrCollectionInitializer
-                var content = new MultipartFormDataContent($"----------{Guid.NewGuid():N}");
-
-                #region Addresses
-
-                content.Add(new StringContent(From), "from");
-                    AddAddressToMultipartForm(emailRecipient, "to", ref content);
-                    AddAddressesToMultipartForm(CcAddressesValid, "cc", ref content);
-                    AddAddressesToMultipartForm(BccAddressesValid, "bcc", ref content);
-
-                #endregion
-
-                #region Subject
-
-                content.Add(new StringContent(Subject), "subject");
-
-                #endregion
-
-                #region Text/HTML
-
-                AddStringContent(Text, "text", ref content);
-                AddStringContent(Html, "html", ref content);
-                AddStringContent(AmpHtml, "amp-html", ref content);
-
-                #endregion
-
-                #region Attachments
-
-                //global attachments
-                foreach (var attachment in Attachments)
-                {
-                    var streamContent = new StreamContent(GetStream(attachment.Content));
-                    streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
-                    content.Add(streamContent, "attachment", attachment.AttachmentFilename);
-                }
-
-                //recipient specific attachments
-                foreach (var attachment in emailRecipient.Attachments)
-                {
-                    var streamContent = new StreamContent(GetStream(attachment.Content));
-                    streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
-                    content.Add(streamContent, "attachment", attachment.AttachmentFilename);
-                }
-
-                #endregion
-
-                #region Template
-
-                AddStringContent(TemplateId, "template", ref content);
-                AddStringContent(TemplateVersion, "t:version", ref content);
-                AddStringContent(TemplateText, "t:text", ref content);
-
-                #endregion
-
-                #region Tags
-
-                foreach (var tag in Tags)
-                {
-                    AddStringContent(tag, "o:tag", ref content);
-                }
-
-                #endregion
-
-                #region Dkim
-
-                if (Dkim != null)
-                {
-                    var value = Dkim == true ? "yes" : "no";
-                    AddStringContent(value, "o:dkim", ref content);
-                }
-
-                #endregion
-
-                #region DeliveryTime
-
-                if (DeliveryTime != null)
-                {
-                    var value = DeliveryTime.Value.ToString("R");
-                    AddStringContent(value, "o:deliverytime", ref content);
-                }
-
-                #endregion
-
-                #region TestMode
-
-                if (TestMode == true)
-                {
-                    AddStringContent("yes", "o:testmode", ref content);
-                }
-
-                #endregion
-
-                #region Tracking
-
-                AddStringContent(Tracking ? "yes" : "no", "o:tracking", ref content);
-                AddStringContent(TrackingClicks ? "yes" : "no", "o:tracking-clicks", ref content);
-                AddStringContent(TrackingOpens ? "yes" : "no", "o:tracking-opens", ref content);
-
-                #endregion
-
-                #region Security (TLS/Cert Verification)
-
-                AddStringContent(RequireTls ? "yes" : "no", "o:require-tls", ref content);
-                AddStringContent(SkipVerification ? "yes" : "no", "o:skip-verification", ref content);
-
-                #endregion
-
-                #region Custom Arguments
-
-                foreach (var argument in emailRecipient.CustomArguments)
-                {
-                    AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
-                }
-
-                foreach (var argument in CustomArguments.Where(c=>emailRecipient.CustomArguments.ContainsKey(c.Key)==false))
-                {
-                    AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
-                }
-
-                #endregion
-
-                #region Custom Headers
-
-                foreach (var customHeader in CustomHeaders)
-                {
-                    AddStringContent(customHeader.Value, $"h:{customHeader.Key}", ref content);
-                }
-
-                #endregion
-
-                #region Recipient Variables
-
-                if (emailRecipient.Substitutions.Any())
-                {
-                    var recipientVariables = JsonConvert.SerializeObject(emailRecipient.Substitutions);
-                    var stringContent = new StringContent(recipientVariables, Encoding.UTF8, "application/json");
-                    content.Add(stringContent, "h:X-Mailgun-Variables");
-                }
-
-                #endregion
-
-                contents[emailRecipient] = content;
+                contents[emailRecipient] = GetMultipartFormDataContent(emailRecipient, substitute);
             }
 
             return contents;
+        }
+
+        private MultipartFormDataContent GetMultipartFormDataContent(IEmailRecipient emailRecipient, bool substitute = false)
+        {
+            
+            // ReSharper disable once UseObjectOrCollectionInitializer
+            var content = new MultipartFormDataContent($"----------{Guid.NewGuid():N}");
+
+            #region Addresses
+
+            content.Add(new StringContent(From), "from");
+            AddAddressToMultipartForm(emailRecipient, "to", ref content);
+            AddAddressesToMultipartForm(CcAddressesValid, "cc", ref content);
+            AddAddressesToMultipartForm(BccAddressesValid, "bcc", ref content);
+
+            #endregion
+
+            #region Subject
+
+            content.Add(new StringContent(Subject), "subject");
+
+            #endregion
+
+            #region Text/HTML
+
+            if (string.IsNullOrWhiteSpace(TemplateId))
+            {
+                if (string.IsNullOrWhiteSpace(Text) == false)
+                {
+                    if (substitute)
+                    {
+                        Substitute(Text, emailRecipient.Substitutions, ref content);
+                    }
+                    else
+                    {
+                        AddStringContent(Text, "text", ref content);
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(Html) == false)
+                {
+                    if (substitute)
+                    {
+                        Substitute(Html, emailRecipient.Substitutions, ref content);
+                    }
+                    else
+                    {
+                        AddStringContent(Html, "text", ref content);
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(AmpHtml) == false)
+                {
+                    if (substitute)
+                    {
+                        Substitute(AmpHtml, emailRecipient.Substitutions, ref content);
+                    }
+                    else
+                    {
+                        AddStringContent(AmpHtml, "text", ref content);
+                    }
+                }
+            }
+
+            #endregion
+
+            #region Attachments
+
+            //global attachments
+            foreach (var attachment in Attachments)
+            {
+                var streamContent = new StreamContent(GetStream(attachment.Content));
+                streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
+                content.Add(streamContent, "attachment", attachment.AttachmentFilename);
+            }
+
+            //recipient specific attachments
+            foreach (var attachment in emailRecipient.Attachments)
+            {
+                var streamContent = new StreamContent(GetStream(attachment.Content));
+                streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
+                content.Add(streamContent, "attachment", attachment.AttachmentFilename);
+            }
+
+            #endregion
+
+            #region Template
+
+            AddStringContent(TemplateId, "template", ref content);
+            AddStringContent(TemplateVersion, "t:version", ref content);
+            AddStringContent(TemplateText, "t:text", ref content);
+
+            #endregion
+
+            #region Tags
+
+            foreach (var tag in Tags)
+            {
+                AddStringContent(tag, "o:tag", ref content);
+            }
+
+            #endregion
+
+            #region Dkim
+
+            if (Dkim != null)
+            {
+                var value = Dkim == true ? "yes" : "no";
+                AddStringContent(value, "o:dkim", ref content);
+            }
+
+            #endregion
+
+            #region DeliveryTime
+
+            if (DeliveryTime != null)
+            {
+                var value = DeliveryTime.Value.ToString("R");
+                AddStringContent(value, "o:deliverytime", ref content);
+            }
+
+            #endregion
+
+            #region TestMode
+
+            if (TestMode == true)
+            {
+                AddStringContent("yes", "o:testmode", ref content);
+            }
+
+            #endregion
+
+            #region Tracking
+
+            AddStringContent(Tracking ? "yes" : "no", "o:tracking", ref content);
+            AddStringContent(TrackingClicks ? "yes" : "no", "o:tracking-clicks", ref content);
+            AddStringContent(TrackingOpens ? "yes" : "no", "o:tracking-opens", ref content);
+
+            #endregion
+
+            #region Security (TLS/Cert Verification)
+
+            AddStringContent(RequireTls ? "yes" : "no", "o:require-tls", ref content);
+            AddStringContent(SkipVerification ? "yes" : "no", "o:skip-verification", ref content);
+
+            #endregion
+
+            #region Custom Arguments
+
+            foreach (var argument in emailRecipient.CustomArguments)
+            {
+                AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
+            }
+
+            foreach (var argument in CustomArguments.Where(c=>emailRecipient.CustomArguments.ContainsKey(c.Key)==false))
+            {
+                AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
+            }
+
+            #endregion
+
+            #region Custom Headers
+
+            foreach (var customHeader in CustomHeaders)
+            {
+                AddStringContent(customHeader.Value, $"h:{customHeader.Key}", ref content);
+            }
+
+            #endregion
+
+            #region Recipient Variables
+            if (emailRecipient.Substitutions.Any() == false)
+            {
+                return content;
+            }
+
+
+            if (string.IsNullOrWhiteSpace(TemplateId) == false)
+            {
+                var json = JsonConvert.SerializeObject(emailRecipient.Substitutions);
+                var stringContent = new StringContent(json , Encoding.UTF8, "application/json");
+                content.Add(stringContent, "h:X-Mailgun-Variables");
+            }
+            else
+            {
+                var dictionary = new Dictionary<string, object> {[emailRecipient.EmailAddress.Address] = emailRecipient.Substitutions};
+                var json = JsonConvert.SerializeObject(dictionary);
+                var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
+                content.Add(stringContent, "recipient-variables");
+            }
+
+
+            #endregion
+
+            return content;
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private void Substitute(string text, Dictionary<string, object> substitutions, ref MultipartFormDataContent content)
+        {
+            var compileFunc = Handlebars.Compile(text);
+            text = compileFunc(substitutions);
+            AddStringContent(text, "text", ref content);
+        }
+
+        private IEnumerable<IEmailRecipient> GetTestAddresses(IEnumerable<IEmailRecipient> toAddresses)
+        {
+            if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses))
+            {
+                return toAddresses;
+            }
+
+            var testEmailAddresses = _options.TestEmailAddresses.Split(',');
+            var toAddressesTemp = new List<IEmailRecipient>();
+            foreach (var toAddress in toAddresses)
+            {
+                var customArgs = toAddress.CustomArguments;
+                customArgs["IsTest"] = "true";
+
+                toAddressesTemp.AddRange(testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim(), substitutions: toAddress.Substitutions,  customArguments: toAddress.CustomArguments, attachments: toAddress.Attachments)));
+            }
+
+            if (CcAddresses.Any())
+            {
+                CcAddresses = testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim()));
+            }
+
+            if (BccAddresses.Any())
+            {
+                BccAddresses = testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim()));
+            }
+
+            toAddresses = toAddressesTemp;
+
+            return toAddresses;
         }
 
         private Stream GetStream(string content)
@@ -677,6 +762,10 @@ namespace Southport.Messaging.Email.MailGun
             _streams.Add(stream);
             return stream;
         }
+
+        #endregion
+
+        #region MultipartForm Helper Methods
 
         private void AddAddressesToMultipartForm(IEnumerable<IEmailRecipient> emailAddresses, string key, ref MultipartFormDataContent content)
         {
@@ -705,5 +794,7 @@ namespace Southport.Messaging.Email.MailGun
 
             content.Add(new StringContent(stringContent), key);
         }
+
+        #endregion
     }
 }

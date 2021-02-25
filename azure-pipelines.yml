@@ -1,9 +1,13 @@
 # only trigger build through main or release branch
 trigger:
-- main
-- release/*
+  tags:
+    include:
+      - release@*
+  branches:
+    include:
+      - main
 
-name: $(Build.SourceBranch).$(Date:yy)$(DayOfYear)$(Rev:.r) 
+name: $(Build.SourceBranchName).$(Date:yyyyMMdd)$(Rev:.r) 
 
 variables:
   vmImage: 'ubuntu-latest'
@@ -25,7 +29,7 @@ stages:
 - stage: 'BuildLibraryRelease'
   displayName: 'Build - Library'
   dependsOn: []
-  condition: startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/release@')
   variables:
     artifactName: 'release-library'
   jobs:
