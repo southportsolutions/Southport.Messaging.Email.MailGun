@@ -104,7 +104,7 @@ namespace Southport.Messaging.Email.MailGun.Test
         [Fact]
         public async Task Send_Message_Html_WithSubstitutions()
         {
-            var html = await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"Templates\Html.html"));
+            var html = await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"Templates/Html.html"));
             var emailRecipients = new List<IEmailRecipient>()
             {
                 new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "Robert"}),
@@ -131,7 +131,7 @@ namespace Southport.Messaging.Email.MailGun.Test
         [Fact]
         public async Task Send_Message_AmpHtml_WithSubstitutions()
         {
-            var ampHtml = await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"Templates\AmpHtml.html"));
+            var ampHtml = await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"Templates/AmpHtml.html"));
             var emailRecipients = new List<IEmailRecipient>()
             {
                 new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "Robert"}),
