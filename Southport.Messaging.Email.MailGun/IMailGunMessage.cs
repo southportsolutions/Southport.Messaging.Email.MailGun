@@ -29,6 +29,7 @@ namespace Southport.Messaging.Email.MailGun
         IMailGunMessage AddHeader(string key, string header);
 
         Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default);
+        Task<IEnumerable<IEmailResult>> SubstituteAndSend(CancellationToken cancellationToken = default);
 
     }
 }

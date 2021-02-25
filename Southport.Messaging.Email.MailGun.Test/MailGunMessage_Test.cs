@@ -1,6 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Net.Mime;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
@@ -26,6 +31,9 @@ namespace Southport.Messaging.Email.MailGun.Test
             _httpClient = new HttpClient();
             _options = Startup.GetOptions();
         }
+
+        #region Simple Message
+
         [Fact]
         public async Task Send_Simple_Message()
         {
@@ -69,6 +77,87 @@ namespace Southport.Messaging.Email.MailGun.Test
                 Assert.Equal(emailAddress, response.EmailRecipient.EmailAddress.Address);
             }
         }
+
+        #endregion
+
+        #region Message With Sutstituions
+
+        [Fact]
+        public async Task Send_Message_Text_WithSubstitutions()
+        {
+            var emailAddress = new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "Robert"});
+            var message = new MailGunMessage(_httpClient, _options);
+            var responses = await message.AddFromAddress("test2@southport.solutions")
+                .AddToAddress(emailAddress)
+                .SetSubject("Test Email")
+                .SetText("Dear {{FirstName}} This is a test email.").SubstituteAndSend();
+
+
+            foreach (var response in responses)
+            {
+                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
+                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                Assert.Equal(emailAddress.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
+            }
+        }
+
+        [Fact]
+        public async Task Send_Message_Html_WithSubstitutions()
+        {
+            var html = await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"Templates\Html.html"));
+            var emailRecipients = new List<IEmailRecipient>()
+            {
+                new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "Robert"}),
+                new EmailRecipient("test2@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "David"})
+            };
+
+            var message = new MailGunMessage(_httpClient, _options);
+            var responses = (await message.AddFromAddress("test2@southport.solutions")
+                .AddToAddresses(emailRecipients)
+                .SetSubject("Test Email")
+                .SetHtml(html).SubstituteAndSend()).ToList();
+
+
+            for (var i = 0; i < responses.Count(); i++)
+            {
+                var response = responses.ElementAt(i);
+                var recipient = emailRecipients.ElementAt(i);
+                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
+                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                Assert.Equal(recipient.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
+            }
+        }
+
+        [Fact]
+        public async Task Send_Message_AmpHtml_WithSubstitutions()
+        {
+            var ampHtml = await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"Templates\AmpHtml.html"));
+            var emailRecipients = new List<IEmailRecipient>()
+            {
+                new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "Robert"}),
+                new EmailRecipient("test2@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "David"})
+            };
+
+            var message = new MailGunMessage(_httpClient, _options);
+            var responses = (await message.AddFromAddress("test2@southport.solutions")
+                .AddToAddresses(emailRecipients)
+                .SetSubject("Test Email")
+                .SetAmpHtml(ampHtml).SubstituteAndSend()).ToList();
+
+
+            for (var i = 0; i < responses.Count(); i++)
+            {
+                var response = responses.ElementAt(i);
+                var recipient = emailRecipients.ElementAt(i);
+                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
+                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                Assert.Equal(recipient.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
+            }
+        }
+
+        #endregion
+
+        #region Template
 
         [Fact]
         public async Task Send_Template_Message()
@@ -167,6 +256,8 @@ namespace Southport.Messaging.Email.MailGun.Test
                 Assert.Contains(testAddresses, s => s.Equals(response.EmailRecipient.EmailAddress.Address));
             }
         }
+
+        #endregion
 
         public void Dispose()
         {

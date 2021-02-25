@@ -144,13 +144,6 @@ namespace Southport.Messaging.Email.MailGun
             return this;
         }
 
-        public IMailGunMessage SetText(string text, Dictionary<string, object> substitutions)
-        {
-            var compileFunc = Handlebars.Compile(text);
-            Text = compileFunc(substitutions);
-            return this;
-        }
-
         #endregion
 
         #region HTML
@@ -160,13 +153,6 @@ namespace Southport.Messaging.Email.MailGun
         public IMailGunMessage SetHtml(string html)
         {
             Html = html;
-            return this;
-        }
-        
-        public IMailGunMessage SetHtml(string html, Dictionary<string, object> substitutions)
-        {
-            var compileFunc = Handlebars.Compile(html);
-            Html = compileFunc(substitutions);
             return this;
         }
 
@@ -179,13 +165,6 @@ namespace Southport.Messaging.Email.MailGun
         public IMailGunMessage SetAmpHtml(string ampHtml)
         {
             AmpHtml = ampHtml;
-            return this;
-        }
-        
-        public IMailGunMessage SetAmpHtml(string ampHtml, Dictionary<string, object> substitutions)
-        {
-            var compileFunc = Handlebars.Compile(ampHtml);
-            AmpHtml = compileFunc(substitutions);
             return this;
         }
 
@@ -453,7 +432,7 @@ namespace Southport.Messaging.Email.MailGun
                 throw new SouthportMessagingException("There must be at least 1 recipient.");
             }
 
-            if (string.IsNullOrWhiteSpace(Html) && string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(TemplateId))
+            if (string.IsNullOrWhiteSpace(Html) && string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(AmpHtml) && string.IsNullOrWhiteSpace(TemplateId))
             {
                 throw new SouthportMessagingException("The message must have a message or reference a template.");
             }
@@ -486,6 +465,11 @@ namespace Southport.Messaging.Email.MailGun
             }
             
             return results;
+        }
+        
+        public async Task<IEnumerable<IEmailResult>> SubstituteAndSend(CancellationToken cancellationToken = default)
+        {
+            return await Send(_options.Domain, true, cancellationToken);
         }
         
         public async Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default)
@@ -539,41 +523,9 @@ namespace Southport.Messaging.Email.MailGun
 
             if (string.IsNullOrWhiteSpace(TemplateId))
             {
-                if (string.IsNullOrWhiteSpace(Text) == false)
-                {
-                    if (substitute)
-                    {
-                        Substitute(Text, emailRecipient.Substitutions, ref content);
-                    }
-                    else
-                    {
-                        AddStringContent(Text, "text", ref content);
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(Html) == false)
-                {
-                    if (substitute)
-                    {
-                        Substitute(Html, emailRecipient.Substitutions, ref content);
-                    }
-                    else
-                    {
-                        AddStringContent(Html, "text", ref content);
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(AmpHtml) == false)
-                {
-                    if (substitute)
-                    {
-                        Substitute(AmpHtml, emailRecipient.Substitutions, ref content);
-                    }
-                    else
-                    {
-                        AddStringContent(AmpHtml, "text", ref content);
-                    }
-                }
+                Substitute(Text, "text", substitute ? emailRecipient.Substitutions : null, ref content);
+                Substitute(Html, "html", substitute ? emailRecipient.Substitutions : null, ref content);
+                Substitute(AmpHtml, "amp-html", substitute ? emailRecipient.Substitutions : null, ref content);
             }
 
             #endregion
@@ -713,11 +665,18 @@ namespace Southport.Messaging.Email.MailGun
 
         #region Helpers
 
-        private void Substitute(string text, Dictionary<string, object> substitutions, ref MultipartFormDataContent content)
+        private void Substitute(string text, string key, Dictionary<string, object> substitutions, ref MultipartFormDataContent content)
         {
-            var compileFunc = Handlebars.Compile(text);
-            text = compileFunc(substitutions);
-            AddStringContent(text, "text", ref content);
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+            if (substitutions != null && substitutions.Any())
+            {
+                var compileFunc = Handlebars.Compile(text);
+                text = compileFunc(substitutions);
+            }
+            AddStringContent(text, key, ref content);
         }
 
         private IEnumerable<IEmailRecipient> GetTestAddresses(IEnumerable<IEmailRecipient> toAddresses)
