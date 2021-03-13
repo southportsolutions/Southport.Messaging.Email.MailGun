@@ -10,7 +10,6 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReleaseNotes>Added Handlebars to the library.</PackageReleaseNotes>
-    <Version>1.0.4-beta3</Version>
   </PropertyGroup>
 
   <ItemGroup>

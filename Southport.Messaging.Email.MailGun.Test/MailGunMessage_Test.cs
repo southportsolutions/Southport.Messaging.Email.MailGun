@@ -108,7 +108,7 @@ namespace Southport.Messaging.Email.MailGun.Test
             var emailRecipients = new List<IEmailRecipient>()
             {
                 new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "Robert"}),
-                new EmailRecipient("test2@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "David"})
+                new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "David"})
             };
 
             var message = new MailGunMessage(_httpClient, _options);

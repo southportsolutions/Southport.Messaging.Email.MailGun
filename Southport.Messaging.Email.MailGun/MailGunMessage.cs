@@ -62,7 +62,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public IMailGunMessage AddToAddresses(List<IEmailRecipient> addresses)
         {
-            ToAddresses = addresses;
+            ((List<IEmailRecipient>)ToAddresses).AddRange(addresses);
             return this;
         }
 
@@ -89,7 +89,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public IMailGunMessage AddCcAddresses(List<IEmailRecipient> addresses)
         {
-            CcAddresses = addresses;
+            ((List<IEmailRecipient>)CcAddresses).AddRange(addresses);
             return this;
         }
 
@@ -116,7 +116,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public IMailGunMessage AddBccAddresses(List<IEmailRecipient> addresses)
         {
-            BccAddresses = addresses;
+            ((List<IEmailRecipient>)BccAddresses).AddRange(addresses);
             return this;
         }
 
@@ -383,13 +383,6 @@ namespace Southport.Messaging.Email.MailGun
 
         #endregion
 
-        #region RecipientVariableDictionary
-
-        private Dictionary<string, Dictionary<string, object>> RecipientVariableDictionary { get; set; }
-
-        #endregion
-
-
         public MailGunMessage(HttpClient httpClient, IMailGunOptions options, bool tracking = true, bool trackingClicks = true, bool trackingOpens = true)
         {
             _httpClient = httpClient;
@@ -399,7 +392,6 @@ namespace Southport.Messaging.Email.MailGun
             BccAddresses = new List<IEmailRecipient>();
             Attachments = new List<IEmailAttachment>();
             CustomHeaders = new Dictionary<string, string>();
-            RecipientVariableDictionary = new Dictionary<string, Dictionary<string, object>>();
             CustomArguments = new Dictionary<string, string>();
             Tags = new List<string>();
 
@@ -738,10 +730,6 @@ namespace Southport.Messaging.Email.MailGun
         private void AddAddressToMultipartForm(IEmailRecipient emailAddress, string key, ref MultipartFormDataContent content)
         {
             AddStringContent(emailAddress.EmailAddress.ToString(), key, ref content);
-            if (emailAddress.Substitutions.Any())
-            {
-                RecipientVariableDictionary.Add(emailAddress.EmailAddress.Address, emailAddress.Substitutions);
-            }
         }
 
         private void AddStringContent(string stringContent, string key, ref MultipartFormDataContent content)
