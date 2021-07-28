@@ -13,9 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Handlebars.Net" Version="2.0.4" />
+    <PackageReference Include="Handlebars.Net" Version="2.0.8" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Southport.Messaging.Email.Core" Version="1.7.0-beta2" />
+    <PackageReference Include="Southport.Messaging.Email.Core" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>

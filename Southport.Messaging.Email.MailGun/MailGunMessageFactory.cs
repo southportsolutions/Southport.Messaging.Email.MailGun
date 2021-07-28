@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using Southport.Messaging.Email.Core;
 
 namespace Southport.Messaging.Email.MailGun
 {
@@ -17,6 +18,11 @@ namespace Southport.Messaging.Email.MailGun
         public IMailGunMessage Create()
         {
             return new MailGunMessage(_httpClient, _options);
+        }
+
+        IEmailMessageCore IEmailMessageFactory.Create()
+        {
+            return Create();
         }
     }
 }
