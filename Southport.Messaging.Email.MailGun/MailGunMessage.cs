@@ -18,7 +18,7 @@ namespace Southport.Messaging.Email.MailGun
     {
         private readonly HttpClient _httpClient;
         private readonly IMailGunOptions _options;
-        private List<Stream> _streams = new List<Stream>();
+        private readonly List<Stream> _streams = new List<Stream>();
 
         #region FromAddress
         
@@ -26,15 +26,15 @@ namespace Southport.Messaging.Email.MailGun
 
         public string From => FromAddress.ToString();
 
-        public IMailGunMessage AddFromAddress(IEmailAddress address)
+        public IMailGunMessage AddFromAddress(IEmailAddress emailAddress)
         {
-            FromAddress = address;
+            FromAddress = emailAddress;
             return this;
         }
 
-        public IMailGunMessage AddFromAddress(string address, string name = null)
+        public IMailGunMessage AddFromAddress(string emailAddress, string name = null)
         {
-            FromAddress = new EmailAddress(address, name);
+            FromAddress = new EmailAddress(emailAddress, name);
             return this;
         }
 
@@ -47,22 +47,20 @@ namespace Southport.Messaging.Email.MailGun
         public IEnumerable<IEmailRecipient> ToAddressesValid => ToAddresses.Where(e => e.EmailAddress.IsValid);
         public IEnumerable<IEmailRecipient> ToAddressesInvalid => ToAddresses.Where(e => e.EmailAddress.IsValid==false);
 
-        //private string To => string.Join(";", ToAddresses);
-
-        public IMailGunMessage AddToAddress(IEmailRecipient address)
+        public IMailGunMessage AddToAddress(IEmailRecipient recipient)
         {
-            ((List<IEmailRecipient>)ToAddresses).Add(address);
+            ((List<IEmailRecipient>)ToAddresses).Add(recipient);
             return this;
         }
 
-        public IMailGunMessage AddToAddress(string address, string name = null)
+        public IMailGunMessage AddToAddress(string emailAddress, string name = null)
         {
-            return AddToAddress(new EmailRecipient(address, name));
+            return AddToAddress(new EmailRecipient(emailAddress, name));
         }
 
-        public IMailGunMessage AddToAddresses(List<IEmailRecipient> addresses)
+        public IMailGunMessage AddToAddresses(List<IEmailRecipient> recipients)
         {
-            ((List<IEmailRecipient>)ToAddresses).AddRange(addresses);
+            ((List<IEmailRecipient>)ToAddresses).AddRange(recipients);
             return this;
         }
 
@@ -73,8 +71,7 @@ namespace Southport.Messaging.Email.MailGun
         public IEnumerable<IEmailAddress> CcAddresses { get; set; }
 
         public IEnumerable<IEmailAddress> CcAddressesValid => CcAddresses.Where(e => e.IsValid);
-        public IEnumerable<IEmailAddress> CcAddressesInvalid =>  CcAddresses.Where(e => e.IsValid==false);
-        //private string Cc => string.Join(";", CcAddresses);
+        public IEnumerable<IEmailAddress> CcAddressesInvalid =>  CcAddresses.Where(e => !e.IsValid);
 
         public IMailGunMessage AddCcAddress(IEmailAddress address)
         {
@@ -101,7 +98,6 @@ namespace Southport.Messaging.Email.MailGun
 
         public IEnumerable<IEmailAddress> BccAddressesValid => BccAddresses.Where(e => e.IsValid);
         public IEnumerable<IEmailAddress> BccAddressesInvalid => BccAddresses.Where(e => e.IsValid==false);
-        //private string Bcc => string.Join(";", BccAddresses);
         
         public IMailGunMessage AddBccAddress(IEmailAddress address)
         {
@@ -419,7 +415,7 @@ namespace Southport.Messaging.Email.MailGun
                 throw new SouthportMessagingException("The from address is required.");
             }
 
-            if (ToAddressesValid.Any()==false && CcAddressesValid.Any()==false && BccAddressesValid.Any()==false)
+            if (!ToAddressesValid.Any() && !CcAddressesValid.Any() && !BccAddressesValid.Any())
             {
                 throw new SouthportMessagingException("There must be at least 1 recipient.");
             }
@@ -477,10 +473,6 @@ namespace Southport.Messaging.Email.MailGun
         {
             var contents = new Dictionary<IEmailRecipient, MultipartFormDataContent>();
             var toAddresses = GetTestAddresses(ToAddressesValid.ToList());
-
-            if (string.IsNullOrWhiteSpace(_options.TestEmailAddresses)==false)
-            {
-            }
 
             foreach (var emailRecipient in toAddresses)
             {
@@ -627,13 +619,13 @@ namespace Southport.Messaging.Email.MailGun
             #endregion
 
             #region Recipient Variables
-            if (emailRecipient.Substitutions.Any() == false)
+            if (!emailRecipient.Substitutions.Any())
             {
                 return content;
             }
 
 
-            if (string.IsNullOrWhiteSpace(TemplateId) == false)
+            if (!string.IsNullOrWhiteSpace(TemplateId))
             {
                 var json = JsonConvert.SerializeObject(emailRecipient.Substitutions);
                 var stringContent = new StringContent(json , Encoding.UTF8, "application/json");
@@ -717,15 +709,6 @@ namespace Southport.Messaging.Email.MailGun
         #endregion
 
         #region MultipartForm Helper Methods
-
-        private void AddAddressesToMultipartForm(IEnumerable<IEmailRecipient> emailRecipients, string key, ref MultipartFormDataContent content)
-        {
-            
-            foreach (var emailAddress in emailRecipients)
-            {
-                AddAddressToMultipartForm(emailAddress.EmailAddress, key, ref content);
-            }
-        }
 
         private void AddAddressesToMultipartForm(IEnumerable<IEmailAddress> emailAddresses, string key, ref MultipartFormDataContent content)
         {
