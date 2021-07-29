@@ -27,7 +27,10 @@ namespace Southport.Messaging.Email.MailGun
         IMailGunMessage SetRequireTls(bool requireTls);
         IMailGunMessage SetSkipVerification(bool verification);
         IMailGunMessage AddHeader(string key, string header);
+        IMailGunMessage SetTemplateVersion(string templateVersion);
+        IMailGunMessage SetTemplateText(string templateText);
 
+        Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default);
         Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default);
         Task<IEnumerable<IEmailResult>> SubstituteAndSend(CancellationToken cancellationToken = default);
 

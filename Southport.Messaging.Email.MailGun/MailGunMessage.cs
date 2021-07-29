@@ -70,26 +70,26 @@ namespace Southport.Messaging.Email.MailGun
 
         #region CcAddresses
         
-        public IEnumerable<IEmailRecipient> CcAddresses { get; set; }
+        public IEnumerable<IEmailAddress> CcAddresses { get; set; }
 
-        public IEnumerable<IEmailRecipient> CcAddressesValid => CcAddresses.Where(e => e.EmailAddress.IsValid);
-        public IEnumerable<IEmailRecipient> CcAddressesInvalid =>  ToAddresses.Where(e => e.EmailAddress.IsValid==false);
+        public IEnumerable<IEmailAddress> CcAddressesValid => CcAddresses.Where(e => e.IsValid);
+        public IEnumerable<IEmailAddress> CcAddressesInvalid =>  CcAddresses.Where(e => e.IsValid==false);
         //private string Cc => string.Join(";", CcAddresses);
 
-        public IMailGunMessage AddCcAddress(IEmailRecipient address)
+        public IMailGunMessage AddCcAddress(IEmailAddress address)
         {
-            ((List<IEmailRecipient>) CcAddresses).Add(address);
+            ((List<IEmailAddress>) CcAddresses).Add(address);
             return this;
         }
 
         public IMailGunMessage AddCcAddress(string address, string name = null)
         {
-            return AddCcAddress(new EmailRecipient(address, name));
+            return AddCcAddress(new EmailAddress(address, name));
         }
 
-        public IMailGunMessage AddCcAddresses(List<IEmailRecipient> addresses)
+        public IMailGunMessage AddCcAddresses(List<IEmailAddress> addresses)
         {
-            ((List<IEmailRecipient>)CcAddresses).AddRange(addresses);
+            ((List<IEmailAddress>)CcAddresses).AddRange(addresses);
             return this;
         }
 
@@ -97,26 +97,26 @@ namespace Southport.Messaging.Email.MailGun
 
         #region BccAddresses
         
-        public IEnumerable<IEmailRecipient> BccAddresses { get; set; }
+        public IEnumerable<IEmailAddress> BccAddresses { get; set; }
 
-        public IEnumerable<IEmailRecipient> BccAddressesValid => BccAddresses.Where(e => e.EmailAddress.IsValid);
-        public IEnumerable<IEmailRecipient> BccAddressesInvalid => BccAddresses.Where(e => e.EmailAddress.IsValid==false);
+        public IEnumerable<IEmailAddress> BccAddressesValid => BccAddresses.Where(e => e.IsValid);
+        public IEnumerable<IEmailAddress> BccAddressesInvalid => BccAddresses.Where(e => e.IsValid==false);
         //private string Bcc => string.Join(";", BccAddresses);
         
-        public IMailGunMessage AddBccAddress(IEmailRecipient address)
+        public IMailGunMessage AddBccAddress(IEmailAddress address)
         {
-            ((List<IEmailRecipient>) BccAddresses).Add(address);
+            ((List<IEmailAddress>) BccAddresses).Add(address);
             return this;
         }
 
         public IMailGunMessage AddBccAddress(string address, string name = null)
         {
-            return AddBccAddress(new EmailRecipient(address, name));
+            return AddBccAddress(new EmailAddress(address, name));
         }
 
-        public IMailGunMessage AddBccAddresses(List<IEmailRecipient> addresses)
+        public IMailGunMessage AddBccAddresses(List<IEmailAddress> addresses)
         {
-            ((List<IEmailRecipient>)BccAddresses).AddRange(addresses);
+            ((List<IEmailAddress>)BccAddresses).AddRange(addresses);
             return this;
         }
 
@@ -388,8 +388,8 @@ namespace Southport.Messaging.Email.MailGun
             _httpClient = httpClient;
             _options = options;
             ToAddresses = new List<IEmailRecipient>();
-            CcAddresses = new List<IEmailRecipient>();
-            BccAddresses = new List<IEmailRecipient>();
+            CcAddresses = new List<IEmailAddress>();
+            BccAddresses = new List<IEmailAddress>();
             Attachments = new List<IEmailAttachment>();
             CustomHeaders = new Dictionary<string, string>();
             CustomArguments = new Dictionary<string, string>();
@@ -690,12 +690,12 @@ namespace Southport.Messaging.Email.MailGun
 
             if (CcAddresses.Any())
             {
-                CcAddresses = testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim()));
+                CcAddresses = testEmailAddresses.Select(emailAddress => new EmailAddress(emailAddress.Trim()));
             }
 
             if (BccAddresses.Any())
             {
-                BccAddresses = testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim()));
+                BccAddresses = testEmailAddresses.Select(emailAddress => new EmailAddress(emailAddress.Trim()));
             }
 
             toAddresses = toAddressesTemp;
@@ -718,18 +718,31 @@ namespace Southport.Messaging.Email.MailGun
 
         #region MultipartForm Helper Methods
 
-        private void AddAddressesToMultipartForm(IEnumerable<IEmailRecipient> emailAddresses, string key, ref MultipartFormDataContent content)
+        private void AddAddressesToMultipartForm(IEnumerable<IEmailRecipient> emailRecipients, string key, ref MultipartFormDataContent content)
         {
             
+            foreach (var emailAddress in emailRecipients)
+            {
+                AddAddressToMultipartForm(emailAddress.EmailAddress, key, ref content);
+            }
+        }
+
+        private void AddAddressesToMultipartForm(IEnumerable<IEmailAddress> emailAddresses, string key, ref MultipartFormDataContent content)
+        {
             foreach (var emailAddress in emailAddresses)
             {
                 AddAddressToMultipartForm(emailAddress, key, ref content);
             }
         }
 
-        private void AddAddressToMultipartForm(IEmailRecipient emailAddress, string key, ref MultipartFormDataContent content)
+        private void AddAddressToMultipartForm(IEmailAddress emailAddress, string key, ref MultipartFormDataContent content)
         {
-            AddStringContent(emailAddress.EmailAddress.ToString(), key, ref content);
+            AddStringContent(emailAddress.ToString(), key, ref content);
+        }
+
+        private void AddAddressToMultipartForm(IEmailRecipient emailRecipient, string key, ref MultipartFormDataContent content)
+        {
+            AddAddressToMultipartForm(emailRecipient.EmailAddress, key, ref content);
         }
 
         private void AddStringContent(string stringContent, string key, ref MultipartFormDataContent content)
