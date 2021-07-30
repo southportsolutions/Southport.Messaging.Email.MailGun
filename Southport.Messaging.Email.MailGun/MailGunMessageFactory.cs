@@ -20,7 +20,7 @@ namespace Southport.Messaging.Email.MailGun
             return new MailGunMessage(_httpClient, _options);
         }
 
-        IEmailMessage<IMailGunMessage> IEmailMessageFactory<IMailGunMessage>.Create()
+        IEmailMessageCore IEmailMessageFactory.Create()
         {
             return Create();
         }
