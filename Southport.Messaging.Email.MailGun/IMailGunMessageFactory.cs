@@ -2,7 +2,7 @@
 
 namespace Southport.Messaging.Email.MailGun
 {
-    public interface IMailGunMessageFactory : IEmailMessageFactory
+    public interface IMailGunMessageFactory : IEmailMessageFactory<IMailGunMessage>
     {
         new IMailGunMessage Create();
 

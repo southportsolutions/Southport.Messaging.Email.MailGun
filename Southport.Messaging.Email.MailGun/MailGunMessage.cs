@@ -45,7 +45,7 @@ namespace Southport.Messaging.Email.MailGun
         public IEnumerable<IEmailRecipient> ToAddresses { get; set; }
 
         public IEnumerable<IEmailRecipient> ToAddressesValid => ToAddresses.Where(e => e.EmailAddress.IsValid);
-        public IEnumerable<IEmailRecipient> ToAddressesInvalid => ToAddresses.Where(e => e.EmailAddress.IsValid==false);
+        public IEnumerable<IEmailRecipient> ToAddressesInvalid => ToAddresses.Where(e => !e.EmailAddress.IsValid);
 
         public IMailGunMessage AddToAddress(IEmailRecipient recipient)
         {
@@ -97,7 +97,7 @@ namespace Southport.Messaging.Email.MailGun
         public IEnumerable<IEmailAddress> BccAddresses { get; set; }
 
         public IEnumerable<IEmailAddress> BccAddressesValid => BccAddresses.Where(e => e.IsValid);
-        public IEnumerable<IEmailAddress> BccAddressesInvalid => BccAddresses.Where(e => e.IsValid==false);
+        public IEnumerable<IEmailAddress> BccAddressesInvalid => BccAddresses.Where(e => !e.IsValid);
         
         public IMailGunMessage AddBccAddress(IEmailAddress address)
         {
@@ -602,7 +602,7 @@ namespace Southport.Messaging.Email.MailGun
                 AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
             }
 
-            foreach (var argument in CustomArguments.Where(c=>emailRecipient.CustomArguments.ContainsKey(c.Key)==false))
+            foreach (var argument in CustomArguments.Where(c=>!emailRecipient.CustomArguments.ContainsKey(c.Key)))
             {
                 AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
             }
