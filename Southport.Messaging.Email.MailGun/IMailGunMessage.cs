@@ -39,11 +39,13 @@ namespace Southport.Messaging.Email.MailGun
 
         #region Overrid Core Methods
 
-                /// <summary>
+        /// <summary>
         /// Adds from address.
         /// </summary>
         /// <param name="emailAddress">The address.</param>
         /// <returns>IEmailMessage.</returns>
+        /// 
+        [Obsolete("Use SetFromAddress.")]
         new IMailGunMessage AddFromAddress(IEmailAddress emailAddress);
         /// <summary>
         /// Adds from address.
@@ -51,7 +53,23 @@ namespace Southport.Messaging.Email.MailGun
         /// <param name="emailAddress">The address.</param>
         /// <param name="name">The name.</param>
         /// <returns>IEmailMessage.</returns>
+        [Obsolete("Use SetFromAddress.")]
         new IMailGunMessage AddFromAddress(string emailAddress, string name = null);
+
+        /// <summary>
+        /// Adds from address.
+        /// </summary>
+        /// <param name="emailAddress">The address.</param>
+        /// <returns>IEmailMessage.</returns>
+        /// 
+        new IMailGunMessage SetFromAddress(IEmailAddress emailAddress);
+        /// <summary>
+        /// Adds from address.
+        /// </summary>
+        /// <param name="emailAddress">The address.</param>
+        /// <param name="name">The name.</param>
+        /// <returns>IEmailMessage.</returns>
+        new IMailGunMessage SetFromAddress(string emailAddress, string name = null);
         /// <summary>
         /// Adds to address.
         /// </summary>

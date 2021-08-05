@@ -37,6 +37,27 @@ namespace Southport.Messaging.Email.MailGun
             FromAddress = emailAddress;
             return this;
         }
+        
+        public IMailGunMessage AddFromAddress(string emailAddress, string name = null)
+        {
+            FromAddress = new EmailAddress(emailAddress, name);
+            return this;
+        }
+
+        public IMailGunMessage SetFromAddress(IEmailAddress emailAddress)
+        {
+            FromAddress = emailAddress;
+            return this;
+        }
+
+        public IMailGunMessage SetFromAddress(string emailAddress, string name = null)
+        {
+            if (string.IsNullOrWhiteSpace(emailAddress))
+            {
+                throw new ArgumentNullException(nameof(emailAddress), "The email address is required");
+            }
+            return SetFromAddress(new EmailAddress(emailAddress, name));
+        }
 
         #endregion
 
@@ -136,7 +157,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public IMailGunMessage SetText(string text)
         {
-            Text = text.Trim();
+            Text = text?.Trim() ?? "";
             return this;
         }
 
@@ -148,7 +169,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public IMailGunMessage SetHtml(string html)
         {
-            Html = html.Trim();
+            Html = html?.Trim() ?? "";
             return this;
         }
 
@@ -160,7 +181,7 @@ namespace Southport.Messaging.Email.MailGun
         
         public IMailGunMessage SetAmpHtml(string ampHtml)
         {
-            AmpHtml = ampHtml.Trim();
+            AmpHtml = ampHtml?.Trim() ?? "";
             return this;
         }
 
@@ -386,6 +407,21 @@ namespace Southport.Messaging.Email.MailGun
             return AddFromAddress(emailAddress, name);
         }
 
+        IEmailMessageCore IEmailMessageCore.AddFromAddress(IEmailAddress emailAddress)
+        {
+            return AddFromAddress(emailAddress);
+        }
+
+        IEmailMessageCore IEmailMessageCore.SetFromAddress(string emailAddress, string name)
+        {
+            return SetFromAddress(emailAddress, name);
+        }
+
+        IEmailMessageCore IEmailMessageCore.SetFromAddress(IEmailAddress emailAddress)
+        {
+            return SetFromAddress(emailAddress);
+        }
+
         IEmailMessageCore IEmailMessageCore.AddToAddress(IEmailRecipient recipient)
         {
             return AddToAddress(recipient);
@@ -494,17 +530,6 @@ namespace Southport.Messaging.Email.MailGun
         IEmailMessageCore IEmailMessageCore.AddCustomArgument(string key, string value)
         {
             return AddCustomArgument(key, value);
-        }
-
-        IEmailMessageCore IEmailMessageCore.AddFromAddress(IEmailAddress emailAddress)
-        {
-            return AddFromAddress(emailAddress);
-        }
-
-        public IMailGunMessage AddFromAddress(string emailAddress, string name = null)
-        {
-            FromAddress = new EmailAddress(emailAddress, name);
-            return this;
         }
 
         #endregion
