@@ -590,7 +590,8 @@ namespace Southport.Messaging.Email.MailGun
                     var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") {Content = formContent.Value};
                     message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
                     var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
-                    results.Add(new EmailResult(formContent.Key, responseMessage));
+                    var result = new EmailResult(formContent.Key, responseMessage.IsSuccessStatusCode, responseMessage.Content != null ? await responseMessage.Content.ReadAsStringAsync() : null);
+                    results.Add(result);
                 
                     formContent.Value.Dispose();
                 }
