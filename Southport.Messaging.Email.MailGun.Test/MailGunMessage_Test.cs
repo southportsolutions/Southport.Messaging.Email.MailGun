@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Mime;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
@@ -47,8 +45,8 @@ namespace Southport.Messaging.Email.MailGun.Test
 
             foreach (var response in responses)
             {
-                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
-                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                _output.WriteLine(response.Message);
+                Assert.True(response.IsSuccessful);
                 Assert.Equal(emailAddress, response.EmailRecipient.EmailAddress.Address);
             }
         }
@@ -72,8 +70,8 @@ namespace Southport.Messaging.Email.MailGun.Test
 
             foreach (var response in responses)
             {
-                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
-                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                _output.WriteLine(response.Message);
+                Assert.True(response.IsSuccessful);
                 Assert.Equal(emailAddress, response.EmailRecipient.EmailAddress.Address);
             }
         }
@@ -95,8 +93,8 @@ namespace Southport.Messaging.Email.MailGun.Test
 
             foreach (var response in responses)
             {
-                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
-                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                _output.WriteLine(response.Message);
+                Assert.True(response.IsSuccessful);
                 Assert.Equal(emailAddress.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
             }
         }
@@ -122,8 +120,8 @@ namespace Southport.Messaging.Email.MailGun.Test
             {
                 var response = responses.ElementAt(i);
                 var recipient = emailRecipients.ElementAt(i);
-                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
-                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                _output.WriteLine(response.Message);
+                Assert.True(response.IsSuccessful);
                 Assert.Equal(recipient.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
             }
         }
@@ -149,8 +147,8 @@ namespace Southport.Messaging.Email.MailGun.Test
             {
                 var response = responses.ElementAt(i);
                 var recipient = emailRecipients.ElementAt(i);
-                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
-                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                _output.WriteLine(response.Message);
+                Assert.True(response.IsSuccessful);
                 Assert.Equal(recipient.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
             }
         }
@@ -171,8 +169,8 @@ namespace Southport.Messaging.Email.MailGun.Test
 
             foreach (var response in responses)
             {
-                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
-                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                _output.WriteLine(response.Message);
+                Assert.True(response.IsSuccessful);
                 Assert.Equal(recipient.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
             }
         }
@@ -197,8 +195,8 @@ namespace Southport.Messaging.Email.MailGun.Test
 
             foreach (var response in responses)
             {
-                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
-                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                _output.WriteLine(response.Message);
+                Assert.True(response.IsSuccessful);
                 Assert.Contains(testAddresses, s => s.Equals(response.EmailRecipient.EmailAddress.Address));
             }
         }
@@ -251,8 +249,8 @@ namespace Southport.Messaging.Email.MailGun.Test
 
             foreach (var response in responses)
             {
-                _output.WriteLine(await response.ResponseMessage.Content.ReadAsStringAsync());
-                Assert.True(response.ResponseMessage.IsSuccessStatusCode);
+                _output.WriteLine(response.Message);
+                Assert.True(response.IsSuccessful);
                 Assert.Contains(testAddresses, s => s.Equals(response.EmailRecipient.EmailAddress.Address));
             }
         }
