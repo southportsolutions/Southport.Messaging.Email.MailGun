@@ -9,7 +9,7 @@
     <Description>MailGun Implementation of the Southport.Messaging.Email.Core</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>Updated to the 1.17.0 version of the Core library and net6.</PackageReleaseNotes>
+    <PackageReleaseNotes>Updated to net7.0 and updated packages.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
