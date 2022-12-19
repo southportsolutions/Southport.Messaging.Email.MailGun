@@ -555,7 +555,12 @@ namespace Southport.Messaging.Email.MailGun
 
         public async Task<IEnumerable<IEmailResult>> Send(CancellationToken cancellationToken = default)
         {
-            return await Send(_options.Domain, cancellationToken);
+            return await Send(_options.Domain, true, cancellationToken);
+        }
+
+        public async Task<IEnumerable<IEmailResult>> Send(bool substitute, CancellationToken cancellationToken = default)
+        {
+            return await Send(_options.Domain, substitute, cancellationToken);
         }
 
         public async Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default)
@@ -563,7 +568,7 @@ namespace Southport.Messaging.Email.MailGun
             return await Send(domain, false, cancellationToken);
         }
 
-        private async Task<IEnumerable<IEmailResult>> Send(string domain, bool substitute = false, CancellationToken cancellationToken = default)
+        private async Task<IEnumerable<IEmailResult>> Send(string domain, bool substitute = true, CancellationToken cancellationToken = default)
         {
             if (FromAddress == null)
             {
@@ -590,7 +595,7 @@ namespace Southport.Messaging.Email.MailGun
                     var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") {Content = formContent.Value};
                     message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
                     var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
-                    var result = new EmailResult(formContent.Key, responseMessage.IsSuccessStatusCode, responseMessage.Content != null ? await responseMessage.Content.ReadAsStringAsync() : null);
+                    var result = new EmailResult(formContent.Key, responseMessage.IsSuccessStatusCode, await responseMessage.Content.ReadAsStringAsync());
                     results.Add(result);
                 
                     formContent.Value.Dispose();
@@ -655,7 +660,7 @@ namespace Southport.Messaging.Email.MailGun
 
             #region Subject
 
-            content.Add(new StringContent(Subject), "subject");
+            Substitute(Subject, "subject", substitute ? emailRecipient.Substitutions : null, ref content);
 
             #endregion
 
