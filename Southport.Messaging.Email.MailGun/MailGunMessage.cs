@@ -553,7 +553,7 @@ namespace Southport.Messaging.Email.MailGun
 
         #region Send
 
-        public async Task<IEnumerable<IEmailResult>> Send(CancellationToken cancellationToken = new CancellationToken())
+        public async Task<IEnumerable<IEmailResult>> Send(CancellationToken cancellationToken = default)
         {
             return await Send(_options.Domain, true, cancellationToken);
         }
