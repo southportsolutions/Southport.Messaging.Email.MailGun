@@ -112,7 +112,7 @@ namespace Southport.Messaging.Email.MailGun.Test
             var message = new MailGunMessage(_httpClient, _options);
             var responses = (await message.AddFromAddress("test2@southport.solutions")
                 .AddToAddresses(emailRecipients)
-                .SetSubject("Test Email")
+                .SetSubject("Test Email {{FirstName}}")
                 .SetHtml(html).Send()).ToList();
 
 
@@ -139,7 +139,7 @@ namespace Southport.Messaging.Email.MailGun.Test
             var message = new MailGunMessage(_httpClient, _options);
             var responses = (await message.AddFromAddress("test2@southport.solutions")
                 .AddToAddresses(emailRecipients)
-                .SetSubject("Test Email")
+                .SetSubject("Test Email {{FirstName}}")
                 .SetAmpHtml(ampHtml).Send()).ToList();
 
 
