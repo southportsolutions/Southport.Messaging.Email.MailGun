@@ -32,9 +32,12 @@ namespace Southport.Messaging.Email.MailGun
         IMailGunMessage AddHeader(string key, string header);
         IMailGunMessage SetTemplateVersion(string templateVersion);
         IMailGunMessage SetTemplateText(string templateText);
-
+        
+        Task<IEnumerable<IEmailResult>> Send(bool substitute, CancellationToken cancellationToken = default);
         Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default);
+        [Obsolete("Use Send")]
         Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default);
+        [Obsolete("Use Send")]
         Task<IEnumerable<IEmailResult>> SubstituteAndSend(CancellationToken cancellationToken = default);
 
         #region Overrid Core Methods

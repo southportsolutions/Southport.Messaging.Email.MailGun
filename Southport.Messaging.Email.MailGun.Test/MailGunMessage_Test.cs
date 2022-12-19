@@ -88,7 +88,7 @@ namespace Southport.Messaging.Email.MailGun.Test
             var responses = await message.AddFromAddress("test2@southport.solutions")
                 .AddToAddress(emailAddress)
                 .SetSubject("Test Email")
-                .SetText("Dear {{FirstName}} This is a test email.").SubstituteAndSend();
+                .SetText("Dear {{FirstName}} This is a test email.").Send();
 
 
             foreach (var response in responses)
@@ -113,7 +113,7 @@ namespace Southport.Messaging.Email.MailGun.Test
             var responses = (await message.AddFromAddress("test2@southport.solutions")
                 .AddToAddresses(emailRecipients)
                 .SetSubject("Test Email")
-                .SetHtml(html).SubstituteAndSend()).ToList();
+                .SetHtml(html).Send()).ToList();
 
 
             for (var i = 0; i < responses.Count(); i++)
@@ -140,7 +140,7 @@ namespace Southport.Messaging.Email.MailGun.Test
             var responses = (await message.AddFromAddress("test2@southport.solutions")
                 .AddToAddresses(emailRecipients)
                 .SetSubject("Test Email")
-                .SetAmpHtml(ampHtml).SubstituteAndSend()).ToList();
+                .SetAmpHtml(ampHtml).Send()).ToList();
 
 
             for (var i = 0; i < responses.Count(); i++)
