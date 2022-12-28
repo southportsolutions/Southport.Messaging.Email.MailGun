@@ -695,7 +695,7 @@ namespace Southport.Messaging.Email.MailGun
 
             #region Subject
 
-            content.Add(new StringContent(Subject), "subject");
+            Substitute(Subject, "subject", substitute ? emailRecipient.Substitutions : null, ref content);
 
             #endregion
 
