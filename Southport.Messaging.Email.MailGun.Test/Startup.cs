@@ -6,9 +6,9 @@ namespace Southport.Messaging.Email.MailGun.Test
 {
     public static class Startup
     {
-        public static IMailGunOptions Options { get; private set; }
+        public static MailGunOptions Options { get; private set; }
 
-        public static IMailGunOptions GetOptions()
+        public static MailGunOptions GetOptions()
         {
             if (Options == null)
             {

@@ -32,12 +32,13 @@ namespace Southport.Messaging.Email.MailGun
         IMailGunMessage AddHeader(string key, string header);
         IMailGunMessage SetTemplateVersion(string templateVersion);
         IMailGunMessage SetTemplateText(string templateText);
-        
-        Task<IEnumerable<IEmailResult>> Send(bool substitute, CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<IEmailResult>> Send(bool substitute = false, CancellationToken cancellationToken = default);
         Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default);
-        [Obsolete("Use Send")]
+
+        [Obsolete("Use Send(string, bool, CancellationToken")]
         Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default);
-        [Obsolete("Use Send")]
+        [Obsolete("Use Send(bool, CancellationToken")]
         Task<IEnumerable<IEmailResult>> SubstituteAndSend(CancellationToken cancellationToken = default);
 
         #region Overrid Core Methods
@@ -215,7 +216,20 @@ namespace Southport.Messaging.Email.MailGun
         /// <param name="customArguments">The custom arguments.</param>
         /// <returns>IEmailMessage.</returns>
         new IMailGunMessage AddCustomArguments(Dictionary<string, string> customArguments);
-
+        /// <summary>
+        /// Adds the substitution to message substitutions. (recipient custom arguments will override message level ones).
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <returns>IEmailMessage.</returns>
+        new IMailGunMessage AddSubstitutions(string key, object value);
+        /// <summary>
+        /// Adds the substitutions.
+        /// </summary>
+        /// <param name="substitutions">The substitutions.</param>
+        /// <returns>IEmailMessage.</returns>
+        new IMailGunMessage AddSubstitutions(Dictionary<string, object> substitutions);
+        
         #endregion
 
 

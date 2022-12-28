@@ -19,14 +19,9 @@ namespace Southport.Messaging.Email.MailGun
     {
         private readonly HttpClient _httpClient;
         private readonly IMailGunOptions _options;
-        private readonly List<Stream> _streams = new List<Stream>();
+        private readonly List<Stream> _streams = new();
 
         #region FromAddress
-
-        IEmailMessageCore IEmailMessageCore.AddCustomArguments(Dictionary<string, string> customArguments)
-        {
-            return AddCustomArguments(customArguments);
-        }
 
         public IEmailAddress FromAddress { get; set; }
 
@@ -358,10 +353,32 @@ namespace Southport.Messaging.Email.MailGun
         #region Custom Variables
         
         public Dictionary<string, string> CustomArguments { get; }
-        
+
         public MailGunMessage AddCustomVariable(string name, string value)
         {
             CustomArguments.Add(name, value);
+            return this;
+        }
+
+        #endregion
+
+        #region Substitutions
+
+        public Dictionary<string, object> Substitutions { get; } = new();
+
+        public IMailGunMessage AddSubstitutions(string key, object value)
+        {
+            Substitutions[key] = value;
+            return this;
+        }
+
+        public IMailGunMessage AddSubstitutions(Dictionary<string, object> substitutions)
+        {
+            foreach (var substitution in substitutions)
+            {
+                Substitutions[substitution.Key] = substitution.Value;
+            }
+
             return this;
         }
 
@@ -527,9 +544,24 @@ namespace Southport.Messaging.Email.MailGun
             return SetReplyTo(emailAddress);
         }
 
+        IEmailMessageCore IEmailMessageCore.AddCustomArguments(Dictionary<string, string> customArguments)
+        {
+            return AddCustomArguments(customArguments);
+        }
+
         IEmailMessageCore IEmailMessageCore.AddCustomArgument(string key, string value)
         {
             return AddCustomArgument(key, value);
+        }
+
+        IEmailMessageCore IEmailMessageCore.AddSubstitutions(string key, object value)
+        {
+            return AddSubstitutions(key, value);
+        }
+
+        IEmailMessageCore IEmailMessageCore.AddSubstitutions(Dictionary<string, object> substitutions)
+        {
+            return AddSubstitutions(substitutions);
         }
 
         #endregion
@@ -555,10 +587,10 @@ namespace Southport.Messaging.Email.MailGun
 
         public async Task<IEnumerable<IEmailResult>> Send(CancellationToken cancellationToken = default)
         {
-            return await Send(_options.Domain, true, cancellationToken);
+            return await Send(_options.Domain, cancellationToken);
         }
 
-        public async Task<IEnumerable<IEmailResult>> Send(bool substitute, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<IEmailResult>> Send(bool substitute = false, CancellationToken cancellationToken = default)
         {
             return await Send(_options.Domain, substitute, cancellationToken);
         }
@@ -595,7 +627,7 @@ namespace Southport.Messaging.Email.MailGun
                     var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") {Content = formContent.Value};
                     message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
                     var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
-                    var result = new EmailResult(formContent.Key, responseMessage.IsSuccessStatusCode, await responseMessage.Content.ReadAsStringAsync());
+                    var result = new EmailResult(formContent.Key, responseMessage.IsSuccessStatusCode, await responseMessage.Content.ReadAsStringAsync(cancellationToken));
                     results.Add(result);
                 
                     formContent.Value.Dispose();
@@ -605,22 +637,20 @@ namespace Southport.Messaging.Email.MailGun
             {
                 foreach (var stream in _streams)
                 {
-#if NET5_0 || NETSTANDARD2_1
                     await stream.DisposeAsync();
-#else
-                    stream.Dispose();
-#endif
                 }
             }
             
             return results;
         }
         
+        [Obsolete("Use Send(bool, CancellationToken")]
         public async Task<IEnumerable<IEmailResult>> SubstituteAndSend(CancellationToken cancellationToken = default)
         {
             return await Send(_options.Domain, true, cancellationToken);
         }
         
+        [Obsolete("Use Send(string, bool, CancellationToken")]
         public async Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default)
         {
             return await Send(domain, true, cancellationToken);
@@ -645,7 +675,12 @@ namespace Southport.Messaging.Email.MailGun
 
         private MultipartFormDataContent GetMultipartFormDataContent(IEmailRecipient emailRecipient, bool substitute = false)
         {
-            
+            var substitutions = emailRecipient.Substitutions ?? new Dictionary<string, object>();
+            foreach (var substitution in Substitutions.Where(s => !substitutions.ContainsKey(s.Key)))
+            {
+                substitutions[substitution.Key] = substitution.Value;
+            }
+
             // ReSharper disable once UseObjectOrCollectionInitializer
             var content = new MultipartFormDataContent($"----------{Guid.NewGuid():N}");
 
@@ -668,9 +703,9 @@ namespace Southport.Messaging.Email.MailGun
 
             if (string.IsNullOrWhiteSpace(TemplateId))
             {
-                Substitute(Text, "text", substitute ? emailRecipient.Substitutions : null, ref content);
-                Substitute(Html, "html", substitute ? emailRecipient.Substitutions : null, ref content);
-                Substitute(AmpHtml, "amp-html", substitute ? emailRecipient.Substitutions : null, ref content);
+                Substitute(Text, "text", substitute ? substitutions : null, ref content);
+                Substitute(Html, "html", substitute ? substitutions : null, ref content);
+                Substitute(AmpHtml, "amp-html", substitute ? substitutions : null, ref content);
             }
 
             #endregion
@@ -780,7 +815,7 @@ namespace Southport.Messaging.Email.MailGun
             #endregion
 
             #region Recipient Variables
-            if (!emailRecipient.Substitutions.Any())
+            if (!substitutions.Any())
             {
                 return content;
             }
@@ -788,13 +823,13 @@ namespace Southport.Messaging.Email.MailGun
 
             if (!string.IsNullOrWhiteSpace(TemplateId))
             {
-                var json = JsonConvert.SerializeObject(emailRecipient.Substitutions);
+                var json = JsonConvert.SerializeObject(substitutions);
                 var stringContent = new StringContent(json , Encoding.UTF8, "application/json");
                 content.Add(stringContent, "h:X-Mailgun-Variables");
             }
             else
             {
-                var dictionary = new Dictionary<string, object> {[emailRecipient.EmailAddress.Address] = emailRecipient.Substitutions};
+                var dictionary = new Dictionary<string, object> {[emailRecipient.EmailAddress.Address] = substitutions};
                 var json = JsonConvert.SerializeObject(dictionary);
                 var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
                 content.Add(stringContent, "recipient-variables");

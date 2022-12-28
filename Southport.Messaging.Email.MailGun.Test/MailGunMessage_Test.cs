@@ -9,6 +9,7 @@ using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
 using Ical.Net.Serialization;
+using Microsoft.Extensions.Options;
 using Southport.Messaging.Email.Core.EmailAttachments;
 using Southport.Messaging.Email.Core.Recipient;
 using Xunit;
@@ -19,15 +20,18 @@ namespace Southport.Messaging.Email.MailGun.Test
     public class MailGunMessageTest : IDisposable
     {
         private readonly HttpClient _httpClient;
-        private readonly IMailGunOptions _options;
+        private readonly MailGunOptions _options;
         
         private readonly  ITestOutputHelper _output;
+        private readonly MailGunMessageFactory<MailGunOptions> _factory;
 
         public MailGunMessageTest(ITestOutputHelper output)
         {
             _output = output;
             _httpClient = new HttpClient();
             _options = Startup.GetOptions();
+
+            _factory = new MailGunMessageFactory<MailGunOptions>(_httpClient, Options.Create(_options));
         }
 
         #region Simple Message
@@ -36,8 +40,9 @@ namespace Southport.Messaging.Email.MailGun.Test
         public async Task Send_Simple_Message()
         {
             var emailAddress = "test1@southport.solutions";
-            var message = new MailGunMessage(_httpClient, _options);
-            var responses = await message.AddFromAddress("test2@southport.solutions")
+            var message = _factory.Create();
+            var responses = await message
+                .SetFromAddress("test2@southport.solutions")
                 .AddToAddress(emailAddress)
                 .SetSubject("Test Email")
                 .SetText("This is a test email.").Send();
@@ -55,8 +60,9 @@ namespace Southport.Messaging.Email.MailGun.Test
         public async Task Send_Simple_Attachment_Message()
         {
             var emailAddress = "test1@southport.solutions";
-            var message = new MailGunMessage(_httpClient, _options);
-            var responses = await message.AddFromAddress("test2@southport.solutions")
+            var message = _factory.Create();
+            var responses = await message
+                .SetFromAddress("test2@southport.solutions")
                 .AddToAddress(emailAddress)
                 .SetSubject("Test Email")
                 .AddAttachments(new EmailAttachment()
@@ -84,11 +90,13 @@ namespace Southport.Messaging.Email.MailGun.Test
         public async Task Send_Message_Text_WithSubstitutions()
         {
             var emailAddress = new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "Robert"});
-            var message = new MailGunMessage(_httpClient, _options);
-            var responses = await message.AddFromAddress("test2@southport.solutions")
+            var message = _factory.Create();
+            var responses = await message
+                .SetFromAddress("test2@southport.solutions")
                 .AddToAddress(emailAddress)
                 .SetSubject("Test Email")
-                .SetText("Dear {{FirstName}} This is a test email.").Send();
+                .SetText("Dear {{FirstName}} This is a test email.")
+                .Send(true);
 
 
             foreach (var response in responses)
@@ -109,11 +117,14 @@ namespace Southport.Messaging.Email.MailGun.Test
                 new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "David"})
             };
 
-            var message = new MailGunMessage(_httpClient, _options);
-            var responses = (await message.AddFromAddress("test2@southport.solutions")
+            var message = _factory.Create();
+            var responses = (await message
+                .SetFromAddress("test2@southport.solutions")
                 .AddToAddresses(emailRecipients)
-                .SetSubject("Test Email {{FirstName}}")
-                .SetHtml(html).Send()).ToList();
+                .SetSubject("Test Email")
+                .SetHtml(html)
+                .AddSubstitutions(new Dictionary<string, object>(){["FirstName"]="Dont User", ["petName"]= "Test Pet"})
+                .Send(true)).ToList();
 
 
             for (var i = 0; i < responses.Count(); i++)
@@ -136,11 +147,12 @@ namespace Southport.Messaging.Email.MailGun.Test
                 new EmailRecipient("test2@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "David"})
             };
 
-            var message = new MailGunMessage(_httpClient, _options);
-            var responses = (await message.AddFromAddress("test2@southport.solutions")
+            var message = _factory.Create();
+            var responses = (await message
+                .SetFromAddress("test2@southport.solutions")
                 .AddToAddresses(emailRecipients)
-                .SetSubject("Test Email {{FirstName}}")
-                .SetAmpHtml(ampHtml).Send()).ToList();
+                .SetSubject("Test Email")
+                .SetAmpHtml(ampHtml).Send(true)).ToList();
 
 
             for (var i = 0; i < responses.Count(); i++)
@@ -161,8 +173,9 @@ namespace Southport.Messaging.Email.MailGun.Test
         public async Task Send_Template_Message()
         {
             var recipient = new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {{"name", "John Doe"}, {"states", new List<string> {"CA", "CT", "TN"}}});
-            var message = new MailGunMessage(_httpClient, _options);
-            var responses = await message.AddFromAddress("test2@southport.solutions")
+            var message = _factory.Create();
+            var responses = await message
+                .SetFromAddress("test2@southport.solutions")
                 .AddToAddress(recipient)
                 .SetSubject("Test Email")
                 .SetTemplate("test_template").Send();
