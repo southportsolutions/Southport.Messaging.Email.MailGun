@@ -33,7 +33,7 @@ namespace Southport.Messaging.Email.MailGun
         IMailGunMessage SetTemplateVersion(string templateVersion);
         IMailGunMessage SetTemplateText(string templateText);
 
-        Task<IEnumerable<IEmailResult>> Send(bool substitute = false, CancellationToken cancellationToken = default);
+        Task<IEnumerable<IEmailResult>> Send(bool substitute = true, CancellationToken cancellationToken = default);
         Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default);
 
         [Obsolete("Use Send(string, bool, CancellationToken")]
@@ -222,7 +222,7 @@ namespace Southport.Messaging.Email.MailGun
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
         /// <returns>IEmailMessage.</returns>
-        new IMailGunMessage AddSubstitutions(string key, object value);
+        new IMailGunMessage AddSubstitution(string key, object value);
         /// <summary>
         /// Adds the substitutions.
         /// </summary>

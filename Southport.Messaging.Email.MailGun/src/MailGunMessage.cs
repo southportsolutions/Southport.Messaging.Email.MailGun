@@ -366,7 +366,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public Dictionary<string, object> Substitutions { get; } = new();
 
-        public IMailGunMessage AddSubstitutions(string key, object value)
+        public IMailGunMessage AddSubstitution(string key, object value)
         {
             Substitutions[key] = value;
             return this;
@@ -554,9 +554,9 @@ namespace Southport.Messaging.Email.MailGun
             return AddCustomArgument(key, value);
         }
 
-        IEmailMessageCore IEmailMessageCore.AddSubstitutions(string key, object value)
+        IEmailMessageCore IEmailMessageCore.AddSubstitution(string key, object value)
         {
-            return AddSubstitutions(key, value);
+            return AddSubstitution(key, value);
         }
 
         IEmailMessageCore IEmailMessageCore.AddSubstitutions(Dictionary<string, object> substitutions)
@@ -590,14 +590,14 @@ namespace Southport.Messaging.Email.MailGun
             return await Send(_options.Domain, cancellationToken);
         }
 
-        public async Task<IEnumerable<IEmailResult>> Send(bool substitute = false, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<IEmailResult>> Send(bool substitute = true, CancellationToken cancellationToken = default)
         {
             return await Send(_options.Domain, substitute, cancellationToken);
         }
 
         public async Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default)
         {
-            return await Send(domain, false, cancellationToken);
+            return await Send(domain, true, cancellationToken);
         }
 
         private async Task<IEnumerable<IEmailResult>> Send(string domain, bool substitute = true, CancellationToken cancellationToken = default)
