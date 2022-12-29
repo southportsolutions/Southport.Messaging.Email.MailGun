@@ -590,14 +590,14 @@ namespace Southport.Messaging.Email.MailGun
             return await Send(_options.Domain, cancellationToken);
         }
 
-        public async Task<IEnumerable<IEmailResult>> Send(bool substitute = false, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<IEmailResult>> Send(bool substitute = true, CancellationToken cancellationToken = default)
         {
             return await Send(_options.Domain, substitute, cancellationToken);
         }
 
         public async Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default)
         {
-            return await Send(domain, false, cancellationToken);
+            return await Send(domain, true, cancellationToken);
         }
 
         private async Task<IEnumerable<IEmailResult>> Send(string domain, bool substitute = true, CancellationToken cancellationToken = default)
