@@ -366,7 +366,7 @@ namespace Southport.Messaging.Email.MailGun
 
         public Dictionary<string, object> Substitutions { get; } = new();
 
-        public IMailGunMessage AddSubstitutions(string key, object value)
+        public IMailGunMessage AddSubstitution(string key, object value)
         {
             Substitutions[key] = value;
             return this;
@@ -554,9 +554,9 @@ namespace Southport.Messaging.Email.MailGun
             return AddCustomArgument(key, value);
         }
 
-        IEmailMessageCore IEmailMessageCore.AddSubstitutions(string key, object value)
+        IEmailMessageCore IEmailMessageCore.AddSubstitution(string key, object value)
         {
-            return AddSubstitutions(key, value);
+            return AddSubstitution(key, value);
         }
 
         IEmailMessageCore IEmailMessageCore.AddSubstitutions(Dictionary<string, object> substitutions)

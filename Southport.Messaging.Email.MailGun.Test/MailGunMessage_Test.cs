@@ -23,7 +23,7 @@ namespace Southport.Messaging.Email.MailGun.Test
         private readonly MailGunOptions _options;
         
         private readonly  ITestOutputHelper _output;
-        private readonly MailGunMessageFactory<MailGunOptions> _factory;
+        private readonly MailGunMessageFactory _factory;
 
         public MailGunMessageTest(ITestOutputHelper output)
         {
@@ -31,7 +31,7 @@ namespace Southport.Messaging.Email.MailGun.Test
             _httpClient = new HttpClient();
             _options = Startup.GetOptions();
 
-            _factory = new MailGunMessageFactory<MailGunOptions>(_httpClient, Options.Create(_options));
+            _factory = new MailGunMessageFactory(_httpClient, Options.Create(_options));
         }
 
         #region Simple Message
@@ -96,7 +96,7 @@ namespace Southport.Messaging.Email.MailGun.Test
                 .AddToAddress(emailAddress)
                 .SetSubject("Test Email")
                 .SetText("Dear {{FirstName}} This is a test email.")
-                .Send(true);
+                .Send();
 
 
             foreach (var response in responses)
@@ -124,7 +124,7 @@ namespace Southport.Messaging.Email.MailGun.Test
                 .SetSubject("Test Email")
                 .SetHtml(html)
                 .AddSubstitutions(new Dictionary<string, object>(){["FirstName"]="Dont User", ["petName"]= "Test Pet"})
-                .Send(true)).ToList();
+                .Send()).ToList();
 
 
             for (var i = 0; i < responses.Count(); i++)
@@ -152,7 +152,8 @@ namespace Southport.Messaging.Email.MailGun.Test
                 .SetFromAddress("test2@southport.solutions")
                 .AddToAddresses(emailRecipients)
                 .SetSubject("Test Email")
-                .SetAmpHtml(ampHtml).Send(true)).ToList();
+                .SetAmpHtml(ampHtml)
+                .Send()).ToList();
 
 
             for (var i = 0; i < responses.Count(); i++)

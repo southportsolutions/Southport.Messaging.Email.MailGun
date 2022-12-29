@@ -4,12 +4,12 @@ using Southport.Messaging.Email.Core;
 
 namespace Southport.Messaging.Email.MailGun
 {
-    public class MailGunMessageFactory<TOptions> : IMailGunMessageFactory where TOptions : class,IMailGunOptions
+    public class MailGunMessageFactory : IMailGunMessageFactory
     {
         private readonly HttpClient _httpClient;
         private readonly IMailGunOptions _options;
 
-        public MailGunMessageFactory(HttpClient httpClient, IOptions<TOptions> options)
+        public MailGunMessageFactory(HttpClient httpClient, IOptions<MailGunOptions> options)
         {
             _httpClient = httpClient;
             _options = options.Value;
