@@ -12,7 +12,7 @@ public static class MailGunExtensionsDependencyInjectionExtensions
         services.AddHttpClient<IMailGunMessageFactory, MailGunMessageFactory>();
         return services;
     }
-    public static IServiceCollection AddExecutionLoggerServices(this IServiceCollection services, MailGunOptions options)
+    public static IServiceCollection AddMailGunServices(this IServiceCollection services, MailGunOptions options)
     {
         services.AddSingleton(Options.Options.Create(options));
         services.AddHttpClient<IMailGunMessageFactory, MailGunMessageFactory>();
