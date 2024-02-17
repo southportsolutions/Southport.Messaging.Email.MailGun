@@ -36,29 +36,7 @@ namespace Southport.Messaging.Email.MailGun
         Task<IEnumerable<IEmailResult>> Send(bool substitute = true, CancellationToken cancellationToken = default);
         Task<IEnumerable<IEmailResult>> Send(string domain, CancellationToken cancellationToken = default);
 
-        [Obsolete("Use Send(string, bool, CancellationToken")]
-        Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default);
-        [Obsolete("Use Send(bool, CancellationToken")]
-        Task<IEnumerable<IEmailResult>> SubstituteAndSend(CancellationToken cancellationToken = default);
-
         #region Overrid Core Methods
-
-        /// <summary>
-        /// Adds from address.
-        /// </summary>
-        /// <param name="emailAddress">The address.</param>
-        /// <returns>IEmailMessage.</returns>
-        /// 
-        [Obsolete("Use SetFromAddress.")]
-        new IMailGunMessage AddFromAddress(IEmailAddress emailAddress);
-        /// <summary>
-        /// Adds from address.
-        /// </summary>
-        /// <param name="emailAddress">The address.</param>
-        /// <param name="name">The name.</param>
-        /// <returns>IEmailMessage.</returns>
-        [Obsolete("Use SetFromAddress.")]
-        new IMailGunMessage AddFromAddress(string emailAddress, string name = null);
 
         /// <summary>
         /// Adds from address.

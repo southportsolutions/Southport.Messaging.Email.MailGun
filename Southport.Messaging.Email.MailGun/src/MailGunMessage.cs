@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HandlebarsDotNet;
-using Newtonsoft.Json;
 using Southport.Messaging.Email.Core;
 using Southport.Messaging.Email.Core.EmailAttachments;
 using Southport.Messaging.Email.Core.Recipient;
@@ -26,18 +26,6 @@ namespace Southport.Messaging.Email.MailGun
         public IEmailAddress FromAddress { get; set; }
 
         public string From => FromAddress.ToString();
-
-        public IMailGunMessage AddFromAddress(IEmailAddress emailAddress)
-        {
-            FromAddress = emailAddress;
-            return this;
-        }
-        
-        public IMailGunMessage AddFromAddress(string emailAddress, string name = null)
-        {
-            FromAddress = new EmailAddress(emailAddress, name);
-            return this;
-        }
 
         public IMailGunMessage SetFromAddress(IEmailAddress emailAddress)
         {
@@ -419,16 +407,6 @@ namespace Southport.Messaging.Email.MailGun
 
         #region Core Methods
 
-        IEmailMessageCore IEmailMessageCore.AddFromAddress(string emailAddress, string name)
-        {
-            return AddFromAddress(emailAddress, name);
-        }
-
-        IEmailMessageCore IEmailMessageCore.AddFromAddress(IEmailAddress emailAddress)
-        {
-            return AddFromAddress(emailAddress);
-        }
-
         IEmailMessageCore IEmailMessageCore.SetFromAddress(string emailAddress, string name)
         {
             return SetFromAddress(emailAddress, name);
@@ -624,12 +602,12 @@ namespace Southport.Messaging.Email.MailGun
             {
                 foreach (var formContent in formContents)
                 {
-                    var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") {Content = formContent.Value};
+                    var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") { Content = formContent.Value };
                     message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
                     var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
                     var result = new EmailResult(formContent.Key, responseMessage.IsSuccessStatusCode, await responseMessage.Content.ReadAsStringAsync(cancellationToken));
                     results.Add(result);
-                
+
                     formContent.Value.Dispose();
                 }
             }
@@ -640,20 +618,8 @@ namespace Southport.Messaging.Email.MailGun
                     await stream.DisposeAsync();
                 }
             }
-            
+
             return results;
-        }
-        
-        [Obsolete("Use Send(bool, CancellationToken")]
-        public async Task<IEnumerable<IEmailResult>> SubstituteAndSend(CancellationToken cancellationToken = default)
-        {
-            return await Send(_options.Domain, true, cancellationToken);
-        }
-        
-        [Obsolete("Use Send(string, bool, CancellationToken")]
-        public async Task<IEnumerable<IEmailResult>> SubstituteAndSend(string domain, CancellationToken cancellationToken = default)
-        {
-            return await Send(domain, true, cancellationToken);
         }
 
         #endregion
@@ -823,14 +789,14 @@ namespace Southport.Messaging.Email.MailGun
 
             if (!string.IsNullOrWhiteSpace(TemplateId))
             {
-                var json = JsonConvert.SerializeObject(substitutions);
+                var json = JsonSerializer.Serialize(substitutions);
                 var stringContent = new StringContent(json , Encoding.UTF8, "application/json");
                 content.Add(stringContent, "h:X-Mailgun-Variables");
             }
             else
             {
                 var dictionary = new Dictionary<string, object> {[emailRecipient.EmailAddress.Address] = substitutions};
-                var json = JsonConvert.SerializeObject(dictionary);
+                var json = JsonSerializer.Serialize(dictionary);
                 var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
                 content.Add(stringContent, "recipient-variables");
             }

@@ -202,7 +202,7 @@ namespace Southport.Messaging.Email.MailGun.Test
             };
             var recipient = new EmailRecipient("rob@southportsolutions.com", substitutions: new Dictionary<string, object>() {{"name", "John Doe"}, {"states", new List<string> {"CA", "CT", "TN"}}});
             var message = new MailGunMessage(_httpClient, options);
-            var responses = await message.AddFromAddress("test1@southport.solutions")
+            var responses = await message.SetFromAddress("test1@southport.solutions")
                 .AddToAddress(recipient)
                 .SetSubject("Test - Test Email Address Parameters")
                 .SetTemplate("test_template").Send();
@@ -254,7 +254,7 @@ namespace Southport.Messaging.Email.MailGun.Test
             });
 
             var message = new MailGunMessage(_httpClient, options);
-            var responses = await message.AddFromAddress("test1@southport.solutions")
+            var responses = await message.SetFromAddress("test1@southport.solutions")
                 .AddToAddress(recipient)
                 .AddCcAddress("cc@test.com")
                 .AddBccAddress("bcc@test.com")
