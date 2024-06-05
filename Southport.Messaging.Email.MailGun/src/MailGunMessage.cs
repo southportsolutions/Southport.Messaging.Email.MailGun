@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using HandlebarsDotNet;
 using Southport.Messaging.Email.Core;
 using Southport.Messaging.Email.Core.EmailAttachments;
@@ -341,10 +342,19 @@ namespace Southport.Messaging.Email.MailGun
         #region Custom Variables
         
         public Dictionary<string, string> CustomArguments { get; }
-
-        public MailGunMessage AddCustomVariable(string name, string value)
+        
+        public IMailGunMessage AddCustomArgument(string key, string value)
         {
-            CustomArguments.Add(name, value);
+            CustomArguments.Add(key, value);
+            return this;
+        }
+
+        public IMailGunMessage AddCustomArguments(Dictionary<string, string> customArguments)
+        {
+            foreach (var customArgument in customArguments)
+            {
+                CustomArguments[customArgument.Key] = customArgument.Value;
+            }
             return this;
         }
 
@@ -382,25 +392,10 @@ namespace Southport.Messaging.Email.MailGun
             return this;
         }
 
-        public MailGunMessage AddRecipientVariable(string emailAddress, string key, string value)
-        {
-            throw new NotImplementedException();
-        }
-
         public IMailGunMessage SetReplyTo(string emailAddress)
         {
             CustomHeaders.Add("Reply-To", emailAddress);
             return this;
-        }
-
-        public IMailGunMessage AddCustomArgument(string key, string value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMailGunMessage AddCustomArguments(Dictionary<string, string> customArguments)
-        {
-            throw new NotImplementedException();
         }
 
         #endregion
