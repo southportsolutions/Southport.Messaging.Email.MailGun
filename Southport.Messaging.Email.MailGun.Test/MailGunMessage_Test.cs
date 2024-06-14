@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using HandlebarsDotNet;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
@@ -14,6 +15,7 @@ using Southport.Messaging.Email.Core.EmailAttachments;
 using Southport.Messaging.Email.Core.Recipient;
 using Xunit;
 using Xunit.Abstractions;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Southport.Messaging.Email.MailGun.Test
 {
@@ -99,11 +101,13 @@ namespace Southport.Messaging.Email.MailGun.Test
                 .Send();
 
 
+            var substitutedText = "Dear Robert This is a test email.";
             foreach (var response in responses)
             {
                 _output.WriteLine(response.Message);
                 Assert.True(response.IsSuccessful);
                 Assert.Equal(emailAddress.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
+                Assert.Equal(substitutedText, response.MessageBody);
             }
         }
 
@@ -117,15 +121,16 @@ namespace Southport.Messaging.Email.MailGun.Test
                 new EmailRecipient("test1@southport.solutions", substitutions: new Dictionary<string, object>() {["FirstName"] = "David"})
             };
 
+            var substitutions = new Dictionary<string, object>() { ["FirstName"] = "Dont User", ["petName"] = "Test Pet" };
+
             var message = _factory.Create();
             var responses = (await message
                 .SetFromAddress("test2@southport.solutions")
                 .AddToAddresses(emailRecipients)
                 .SetSubject("Test Email")
                 .SetHtml(html)
-                .AddSubstitutions(new Dictionary<string, object>(){["FirstName"]="Dont User", ["petName"]= "Test Pet"})
+                .AddSubstitutions(substitutions)
                 .Send()).ToList();
-
 
             for (var i = 0; i < responses.Count(); i++)
             {
@@ -134,6 +139,10 @@ namespace Southport.Messaging.Email.MailGun.Test
                 _output.WriteLine(response.Message);
                 Assert.True(response.IsSuccessful);
                 Assert.Equal(recipient.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
+
+                var compileFunc = Handlebars.Compile(html.Trim());
+                var substitutedText = compileFunc(recipient.Substitutions);
+                Assert.Equal(substitutedText, response.MessageBody);
             }
         }
 
@@ -163,6 +172,11 @@ namespace Southport.Messaging.Email.MailGun.Test
                 _output.WriteLine(response.Message);
                 Assert.True(response.IsSuccessful);
                 Assert.Equal(recipient.EmailAddress.Address, response.EmailRecipient.EmailAddress.Address);
+                
+                var compileFunc = Handlebars.Compile(ampHtml);
+                var substitutedText = compileFunc(recipient.Substitutions);
+                Assert.Equal(substitutedText, response.MessageBody);
+
             }
         }
 
@@ -258,6 +272,7 @@ namespace Southport.Messaging.Email.MailGun.Test
                 .AddToAddress(recipient)
                 .AddCcAddress("cc@test.com")
                 .AddBccAddress("bcc@test.com")
+                .AddCustomArgument("message_id", "1234567890")
                 .SetSubject("Test - Test Email Address Parameters")
                 .SetTemplate("test_template").Send();
 
