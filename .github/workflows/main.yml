@@ -76,6 +76,9 @@ jobs:
       
       - name: Test (NET9) and collect coverage
         shell: bash
+        env:
+          MAILGUNSECRET: ${{ secrets.MAILGUNAPIKEY }}
+          MAILGUNDOMAIN: ${{ secrets.MAILGUNDOMAIN }}
         run: |
           shopt -s globstar nullglob
           dotnet test **/${{ env.PROJECT_NAME }}.Tests.csproj \
@@ -88,6 +91,9 @@ jobs:
 
       - name: Test (NET10) and collect coverage
         shell: bash
+        env:
+          MAILGUNSECRET: ${{ secrets.MAILGUNAPIKEY }}
+          MAILGUNDOMAIN: ${{ secrets.MAILGUNDOMAIN }}
         run: |
           shopt -s globstar nullglob
           dotnet test **/${{ env.PROJECT_NAME }}.Tests.csproj \
