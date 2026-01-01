@@ -77,7 +77,7 @@ jobs:
       - name: Test (NET9) and collect coverage
         shell: bash
         env:
-          MAILGUNSECRET: ${{ secrets.MAILGUNAPIKEY }}
+          MAILGUNAPIKEY: ${{ secrets.MAILGUNAPIKEY }}
           MAILGUNDOMAIN: ${{ secrets.MAILGUNDOMAIN }}
         run: |
           shopt -s globstar nullglob
@@ -92,7 +92,7 @@ jobs:
       - name: Test (NET10) and collect coverage
         shell: bash
         env:
-          MAILGUNSECRET: ${{ secrets.MAILGUNAPIKEY }}
+          MAILGUNAPIKEY: ${{ secrets.MAILGUNAPIKEY }}
           MAILGUNDOMAIN: ${{ secrets.MAILGUNDOMAIN }}
         run: |
           shopt -s globstar nullglob
