@@ -9,7 +9,7 @@
     <Description>MailGun Implementation of the Southport.Messaging.Email.Core</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>Updated to net9.0 and net10.0 and updated packages.</PackageReleaseNotes>
+    <PackageReleaseNotes>Updated attachment support, to support byte arrays and streams.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +18,7 @@
       <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.11" Condition="'$(TargetFramework)' == 'net9.0'"/>
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.1" Condition="'$(TargetFramework)' == 'net10.0'"/>
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.11" Condition="'$(TargetFramework)' == 'net9.0'"/>
-      <PackageReference Include="Southport.Messaging.Email.Core" Version="10.0.0"/>
+      <PackageReference Include="Southport.Messaging.Email.Core" Version="10.0.2"/>
   </ItemGroup>
 
   <ItemGroup>
