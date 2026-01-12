@@ -81,7 +81,7 @@ namespace Southport.Messaging.Email.MailGun.Test
         [Fact]
         public async Task Send_Simple_AttachmentStream_Message()
         {
-            var stream = await FileHelpers.OpenFileStreamAsync();
+            await using var stream = await FileHelpers.OpenFileStreamAsync();
             
             var emailAddress = "test1@southport.solutions";
             await using var message = _factory.Create();
