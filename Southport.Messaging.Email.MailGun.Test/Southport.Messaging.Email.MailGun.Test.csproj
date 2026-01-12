@@ -9,6 +9,9 @@
   <ItemGroup>
     <None Remove="Templates\AmpHtml.html" />
     <None Remove="Templates\Html.html" />
+    <None Update="Files\dummy.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +42,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Southport.Messaging.Email.MailGun\Southport.Messaging.Email.MailGun.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Files\" />
   </ItemGroup>
 
 </Project>

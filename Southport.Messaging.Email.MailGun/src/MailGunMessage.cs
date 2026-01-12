@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using HandlebarsDotNet;
 using Southport.Messaging.Email.Core;
 using Southport.Messaging.Email.Core.EmailAttachments;
@@ -40,13 +39,14 @@ public class MailGunMessage : IMailGunMessage
         {
             throw new ArgumentNullException(nameof(emailAddress), "The email address is required");
         }
+
         return SetFromAddress(new EmailAddress(emailAddress, name));
     }
 
     #endregion
 
     #region ToAddresses
-  
+
     public IEnumerable<IEmailRecipient> ToAddresses { get; set; }
 
     public IEnumerable<IEmailRecipient> ToAddressesValid => ToAddresses.Where(e => e.EmailAddress.IsValid);
@@ -72,15 +72,15 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region CcAddresses
-        
+
     public IEnumerable<IEmailAddress> CcAddresses { get; set; }
 
     public IEnumerable<IEmailAddress> CcAddressesValid => CcAddresses.Where(e => e.IsValid);
-    public IEnumerable<IEmailAddress> CcAddressesInvalid =>  CcAddresses.Where(e => !e.IsValid);
+    public IEnumerable<IEmailAddress> CcAddressesInvalid => CcAddresses.Where(e => !e.IsValid);
 
     public IMailGunMessage AddCcAddress(IEmailAddress address)
     {
-        ((List<IEmailAddress>) CcAddresses).Add(address);
+        ((List<IEmailAddress>)CcAddresses).Add(address);
         return this;
     }
 
@@ -98,15 +98,15 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region BccAddresses
-        
+
     public IEnumerable<IEmailAddress> BccAddresses { get; set; }
 
     public IEnumerable<IEmailAddress> BccAddressesValid => BccAddresses.Where(e => e.IsValid);
     public IEnumerable<IEmailAddress> BccAddressesInvalid => BccAddresses.Where(e => !e.IsValid);
-        
+
     public IMailGunMessage AddBccAddress(IEmailAddress address)
     {
-        ((List<IEmailAddress>) BccAddresses).Add(address);
+        ((List<IEmailAddress>)BccAddresses).Add(address);
         return this;
     }
 
@@ -126,7 +126,7 @@ public class MailGunMessage : IMailGunMessage
     #region Subject
 
     public string Subject { get; private set; }
-        
+
     public IMailGunMessage SetSubject(string subject)
     {
         Subject = subject;
@@ -138,7 +138,7 @@ public class MailGunMessage : IMailGunMessage
     #region Text
 
     public string Text { get; set; }
-        
+
     public IMailGunMessage SetText(string text)
     {
         Text = text?.Trim() ?? "";
@@ -174,7 +174,7 @@ public class MailGunMessage : IMailGunMessage
     #region Attachments
 
     public List<IEmailAttachment> Attachments { get; set; }
-        
+
     public IMailGunMessage AddAttachments(IEmailAttachment attachment)
     {
         Attachments.Add(attachment);
@@ -192,7 +192,7 @@ public class MailGunMessage : IMailGunMessage
     #region Template
 
     public string TemplateId { get; set; }
-        
+
     public IMailGunMessage SetTemplate(string template)
     {
         TemplateId = template;
@@ -202,9 +202,9 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region TemplateVersion
-        
+
     public string TemplateVersion { get; set; }
-        
+
     public IMailGunMessage SetTemplateVersion(string templateVersion)
     {
         TemplateVersion = templateVersion;
@@ -214,9 +214,9 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region TemplateText
-        
+
     public string TemplateText { get; set; }
-        
+
     public IMailGunMessage SetTemplateText(string templateText)
     {
         TemplateText = templateText;
@@ -228,13 +228,13 @@ public class MailGunMessage : IMailGunMessage
     #region Tags
 
     public List<string> Tags { get; set; }
-        
+
     public IMailGunMessage SetTag(string tag)
     {
         Tags.Add(tag);
         return this;
     }
-        
+
     public IMailGunMessage SetTags(List<string> tags)
     {
         Tags = tags;
@@ -244,9 +244,9 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region Dkim
-        
+
     public bool? Dkim { get; set; }
-        
+
     public IMailGunMessage SetDkim(bool dkim)
     {
         Dkim = dkim;
@@ -256,9 +256,9 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region DeliveryTime
-        
+
     public DateTime? DeliveryTime { get; set; }
-        
+
     public IMailGunMessage SetDeliveryTime(DateTime deliveryTime)
     {
         DeliveryTime = deliveryTime;
@@ -268,7 +268,7 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region TestMode
-        
+
     public bool? TestMode { get; set; }
 
     public IMailGunMessage SetTestMode(bool testMode)
@@ -280,7 +280,7 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region Tracking
-        
+
     public bool Tracking { get; set; }
 
     public IMailGunMessage SetTracking(bool tracking)
@@ -292,9 +292,9 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region TrackingClicks
-        
+
     public bool TrackingClicks { get; set; }
-        
+
     public IMailGunMessage SetTrackingClicks(bool tracking)
     {
         TrackingClicks = tracking;
@@ -304,7 +304,7 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region TrackingOpens
-        
+
     public bool TrackingOpens { get; set; }
 
     public IMailGunMessage SetTrackingOpens(bool tracking)
@@ -316,9 +316,9 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region RequireTls
-        
+
     public bool RequireTls { get; set; }
-        
+
     public IMailGunMessage SetRequireTls(bool requireTls)
     {
         RequireTls = requireTls;
@@ -328,9 +328,9 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region SkipVerification
-        
+
     public bool SkipVerification { get; set; }
-        
+
     public IMailGunMessage SetSkipVerification(bool verification)
     {
         SkipVerification = verification;
@@ -340,9 +340,9 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region Custom Variables
-        
+
     public Dictionary<string, string> CustomArguments { get; }
-        
+
     public IMailGunMessage AddCustomArgument(string key, string value)
     {
         CustomArguments.Add(key, value);
@@ -355,6 +355,7 @@ public class MailGunMessage : IMailGunMessage
         {
             CustomArguments[customArgument.Key] = customArgument.Value;
         }
+
         return this;
     }
 
@@ -383,9 +384,9 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region Custom Headers
-        
+
     public Dictionary<string, string> CustomHeaders { get; set; }
-        
+
     public IMailGunMessage AddHeader(string key, string header)
     {
         CustomHeaders.Add(key, header);
@@ -539,7 +540,8 @@ public class MailGunMessage : IMailGunMessage
 
     #endregion
 
-    public MailGunMessage(HttpClient httpClient, IMailGunOptions options, bool tracking = true, bool trackingClicks = true, bool trackingOpens = true)
+    public MailGunMessage(HttpClient httpClient, IMailGunOptions options, bool tracking = true,
+        bool trackingClicks = true, bool trackingOpens = true)
     {
         _httpClient = httpClient;
         _options = options;
@@ -563,7 +565,8 @@ public class MailGunMessage : IMailGunMessage
         return await Send(_options.Domain, cancellationToken);
     }
 
-    public async Task<IEnumerable<IEmailResult>> Send(bool substitute = true, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<IEmailResult>> Send(bool substitute = true,
+        CancellationToken cancellationToken = default)
     {
         return await Send(_options.Domain, substitute, cancellationToken);
     }
@@ -573,7 +576,8 @@ public class MailGunMessage : IMailGunMessage
         return await Send(domain, true, cancellationToken);
     }
 
-    private async Task<IEnumerable<IEmailResult>> Send(string domain, bool substitute = true, CancellationToken cancellationToken = default)
+    private async Task<IEnumerable<IEmailResult>> Send(string domain, bool substitute = true,
+        CancellationToken cancellationToken = default)
     {
         if (FromAddress == null)
         {
@@ -585,7 +589,8 @@ public class MailGunMessage : IMailGunMessage
             throw new SouthportMessagingException("There must be at least 1 recipient.");
         }
 
-        if (string.IsNullOrWhiteSpace(Html) && string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(AmpHtml) && string.IsNullOrWhiteSpace(TemplateId))
+        if (string.IsNullOrWhiteSpace(Html) && string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(AmpHtml) &&
+            string.IsNullOrWhiteSpace(TemplateId))
         {
             throw new SouthportMessagingException("The message must have a message or reference a template.");
         }
@@ -593,29 +598,25 @@ public class MailGunMessage : IMailGunMessage
         var formContents = GetMultipartFormDataContent(substitute);
 
         var results = new List<IEmailResult>();
-        try
+        foreach (var formContent in formContents)
         {
-            foreach (var formContent in formContents)
+            var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages")
+                { Content = formContent.Value.MultipartFormData };
+            message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
+            var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
+            var result = new EmailResult(formContent.Key, responseMessage.IsSuccessStatusCode,
+                await responseMessage.Content.ReadAsStringAsync(cancellationToken))
             {
-                var message = new HttpRequestMessage(HttpMethod.Post, $"https://api.mailgun.net/v3/{domain}/messages") { Content = formContent.Value.MultipartFormData };
-                message.Headers.Authorization = new BasicAuthenticationHeaderValue("api", _options.ApiKey);
-                var responseMessage = await _httpClient.SendAsync(message, cancellationToken);
-                var result = new EmailResult(formContent.Key, responseMessage.IsSuccessStatusCode, await responseMessage.Content.ReadAsStringAsync(cancellationToken))
-                {
-                    MessageBody = string.IsNullOrWhiteSpace(formContent.Value.Text) ? string.IsNullOrWhiteSpace(formContent.Value.Html) ? formContent.Value.AmpHtml : formContent.Value.Html : formContent.Value.Text
-                };
+                MessageBody = string.IsNullOrWhiteSpace(formContent.Value.Text)
+                    ? string.IsNullOrWhiteSpace(formContent.Value.Html)
+                        ? formContent.Value.AmpHtml
+                        : formContent.Value.Html
+                    : formContent.Value.Text
+            };
 
-                results.Add(result);
+            results.Add(result);
 
-                formContent.Value.MultipartFormData.Dispose();
-            }
-        }
-        finally
-        {
-            foreach (var stream in _streams)
-            {
-                await stream.DisposeAsync();
-            }
+            formContent.Value.MultipartFormData.Dispose();
         }
 
         return results;
@@ -626,6 +627,7 @@ public class MailGunMessage : IMailGunMessage
     #region GetMultipartFormDataContent
 
     private record RecipientData(MultipartFormDataContent MultipartFormData, string Text, string Html, string AmpHtml);
+
     private Dictionary<IEmailRecipient, RecipientData> GetMultipartFormDataContent(bool substitute = false)
     {
         var contents = new Dictionary<IEmailRecipient, RecipientData>();
@@ -641,7 +643,7 @@ public class MailGunMessage : IMailGunMessage
 
     private RecipientData GetMultipartFormDataContent(IEmailRecipient emailRecipient, bool substitute = false)
     {
-        
+
         var substitutions = emailRecipient.Substitutions ?? new Dictionary<string, object>();
         foreach (var substitution in Substitutions.Where(s => !substitutions.ContainsKey(s.Key)))
         {
@@ -685,17 +687,13 @@ public class MailGunMessage : IMailGunMessage
         //global attachments
         foreach (var attachment in Attachments)
         {
-            var streamContent = new StreamContent(GetStream(attachment.Content));
-            streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
-            content.Add(streamContent, "attachment", attachment.AttachmentFilename);
+            AddAttachment(attachment, ref content);
         }
 
         //recipient specific attachments
         foreach (var attachment in emailRecipient.Attachments)
         {
-            var streamContent = new StreamContent(GetStream(attachment.Content));
-            streamContent.Headers.Add("Content-Type", attachment.AttachmentType);
-            content.Add(streamContent, "attachment", attachment.AttachmentFilename);
+            AddAttachment(attachment, ref content);
         }
 
         #endregion
@@ -768,7 +766,7 @@ public class MailGunMessage : IMailGunMessage
             AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
         }
 
-        foreach (var argument in CustomArguments.Where(c=>!emailRecipient.CustomArguments.ContainsKey(c.Key)))
+        foreach (var argument in CustomArguments.Where(c => !emailRecipient.CustomArguments.ContainsKey(c.Key)))
         {
             AddStringContent(argument.Value, $"v:{argument.Key}", ref content);
         }
@@ -785,6 +783,7 @@ public class MailGunMessage : IMailGunMessage
         #endregion
 
         #region Recipient Variables
+
         if (!substitutions.Any())
         {
             return new RecipientData(content, text, html, ampHtml);
@@ -794,12 +793,12 @@ public class MailGunMessage : IMailGunMessage
         if (!string.IsNullOrWhiteSpace(TemplateId))
         {
             var json = JsonSerializer.Serialize(substitutions);
-            var stringContent = new StringContent(json , Encoding.UTF8, "application/json");
+            var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
             content.Add(stringContent, "h:X-Mailgun-Variables");
         }
         else
         {
-            var dictionary = new Dictionary<string, object> {[emailRecipient.EmailAddress.Address] = substitutions};
+            var dictionary = new Dictionary<string, object> { [emailRecipient.EmailAddress.Address] = substitutions };
             var json = JsonSerializer.Serialize(dictionary);
             var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
             content.Add(stringContent, "recipient-variables");
@@ -814,17 +813,21 @@ public class MailGunMessage : IMailGunMessage
     #endregion
 
     #region Helpers
-    private string Substitute(string text, string key, Dictionary<string, object> substitutions, ref MultipartFormDataContent content)
+
+    private string Substitute(string text, string key, Dictionary<string, object> substitutions,
+        ref MultipartFormDataContent content)
     {
         if (string.IsNullOrEmpty(text))
         {
             return null;
         }
+
         if (substitutions != null && substitutions.Any())
         {
             var compileFunc = Handlebars.Compile(text);
             text = compileFunc(substitutions);
         }
+
         AddStringContent(text, key, ref content);
         return text;
     }
@@ -843,7 +846,9 @@ public class MailGunMessage : IMailGunMessage
             var customArgs = toAddress.CustomArguments;
             customArgs["IsTest"] = "true";
 
-            toAddressesTemp.AddRange(testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim(), substitutions: toAddress.Substitutions,  customArguments: toAddress.CustomArguments, attachments: toAddress.Attachments)));
+            toAddressesTemp.AddRange(testEmailAddresses.Select(emailAddress => new EmailRecipient(emailAddress.Trim(),
+                substitutions: toAddress.Substitutions, customArguments: toAddress.CustomArguments,
+                attachments: toAddress.Attachments)));
         }
 
         if (CcAddresses.Any())
@@ -861,12 +866,44 @@ public class MailGunMessage : IMailGunMessage
         return toAddresses;
     }
 
+    private void AddAttachment(IEmailAttachment attachment, ref MultipartFormDataContent content)
+    {
+        // 1) If attachment exposes a Stream property named "ContentStream" use it directly
+        if (attachment is EmailAttachmentStream { Content: not null } streamAttachment)
+        {
+            var streamContent = new StreamContent(streamAttachment.Content);
+            streamContent.Headers.Add("Content-Type", streamAttachment.Type);
+            content.Add(streamContent, "attachment", streamAttachment.Filename);
+            return;
+        }
+
+        // 2) If attachment exposes byte[] named "ContentBytes" create a MemoryStream
+        if (attachment is EmailAttachmentBytes { Content: not null } emailAttachmentBytes)
+        {
+            var ms = new MemoryStream(emailAttachmentBytes.Content);
+            _streams.Add(ms);
+            var streamContent = new StreamContent(ms);
+            streamContent.Headers.Add("Content-Type", emailAttachmentBytes.Type);
+            content.Add(streamContent, "attachment", emailAttachmentBytes.Filename);
+            return;
+        }
+
+        // 3) Fallback: assume a string property `Content` exists (as used elsewhere in the file)
+        //    This preserves existing behavior for in-memory string content.
+        if (attachment is EmailAttachmentString { Content: not null } emailAttachmentString)
+        {
+            var streamContentFallback = new StreamContent(GetStream(emailAttachmentString.Content));
+            streamContentFallback.Headers.Add("Content-Type", emailAttachmentString.Type);
+            content.Add(streamContentFallback, "attachment", emailAttachmentString.Filename);
+        }
+    }
+
     private Stream GetStream(string content)
     {
         var stream = new MemoryStream();
         var sw = new StreamWriter(stream, Encoding.UTF8);
         sw.Write(content);
-        sw.Flush();//otherwise you are risking empty stream
+        sw.Flush(); //otherwise you are risking empty stream
         stream.Seek(0, SeekOrigin.Begin);
         _streams.Add(stream);
         return stream;
@@ -876,7 +913,8 @@ public class MailGunMessage : IMailGunMessage
 
     #region MultipartForm Helper Methods
 
-    private void AddAddressesToMultipartForm(IEnumerable<IEmailAddress> emailAddresses, string key, ref MultipartFormDataContent content)
+    private void AddAddressesToMultipartForm(IEnumerable<IEmailAddress> emailAddresses, string key,
+        ref MultipartFormDataContent content)
     {
         foreach (var emailAddress in emailAddresses)
         {
@@ -889,7 +927,8 @@ public class MailGunMessage : IMailGunMessage
         AddStringContent(emailAddress.ToString(), key, ref content);
     }
 
-    private void AddAddressToMultipartForm(IEmailRecipient emailRecipient, string key, ref MultipartFormDataContent content)
+    private void AddAddressToMultipartForm(IEmailRecipient emailRecipient, string key,
+        ref MultipartFormDataContent content)
     {
         AddAddressToMultipartForm(emailRecipient.EmailAddress, key, ref content);
     }
@@ -905,4 +944,74 @@ public class MailGunMessage : IMailGunMessage
     }
 
     #endregion
+
+    public async ValueTask DisposeAsync()
+    {
+        // Dispose attachments (prefer async when available)
+        foreach (var emailAttachment in Attachments)
+        {
+            if (emailAttachment is IAsyncDisposable aad)
+            {
+                await aad.DisposeAsync();
+            }
+        }
+
+        // Dispose recipient attachments
+        foreach (var emailRecipient in ToAddresses)
+        {
+            foreach (var attachment in emailRecipient.Attachments)
+            {
+                if (attachment is IAsyncDisposable aad)
+                {
+                    await aad.DisposeAsync();
+                }
+            }
+        }
+
+        // Dispose internal streams
+        foreach (var stream in _streams)
+        {
+            if (stream is IAsyncDisposable streamAad)
+            {
+                await streamAad.DisposeAsync();
+            }
+            else
+            {
+                stream.Dispose();
+            }
+        }
+
+        _streams.Clear();
+    }
+
+    public void Dispose()
+    {// Dispose attachments (prefer async when available)
+        foreach (var attachment in Attachments)
+        {
+            if (attachment is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+
+        // Dispose recipient attachments
+        foreach (var emailRecipient in ToAddresses)
+        {
+            foreach (var attachment in emailRecipient.Attachments)
+            {
+                if (attachment is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
+        }
+
+        // Dispose internal streams
+        foreach (var stream in _streams)
+        {
+            stream.Dispose();
+        }
+
+        _streams.Clear();
+    }
 }
