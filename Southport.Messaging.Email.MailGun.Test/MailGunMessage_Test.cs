@@ -102,18 +102,22 @@ namespace Southport.Messaging.Email.MailGun.Test
         }
 
         /// <summary>
-        /// When one stream attachment is sent to two recipients, each recipient's request body contains the full attachment bytes.
+        /// When one stream attachment and one string attachment are sent to two recipients, each recipient's request body contains both attachments in full.
         /// </summary>
         [Fact]
-        public async Task Send_AttachmentStream_MultipleRecipients_EachRequestContainsAttachment()
+        public async Task Send_Attachments_MultipleRecipients_EachRequestContainsAttachments()
         {
             await using var stream = await FileHelpers.OpenFileStreamAsync();
-            var expectedBytes = await FileHelpers.StreamToBytesAsync(stream);
+            var expectedStreamBytes = await FileHelpers.StreamToBytesAsync(stream);
             stream.Position = 0;
+            var stringAttachmentContent = "Test attachment content.";
+            var expectedStringBytes = System.Text.Encoding.UTF8.GetBytes(stringAttachmentContent);
 
+            // TestEmailAddresses is left empty so each To address produces exactly one request.
+            var options = new MailGunOptions { ApiKey = "test-api-key", Domain = "test.example.com" };
             var capturingHandler = new CapturingHttpMessageHandler();
             using var httpClient = new HttpClient(capturingHandler);
-            var factory = new MailGunMessageFactory(httpClient, Options.Create(_options));
+            var factory = new MailGunMessageFactory(httpClient, Options.Create(options));
 
             await using var message = factory.Create();
             var responses = await message
@@ -122,6 +126,7 @@ namespace Southport.Messaging.Email.MailGun.Test
                 .AddToAddress("test3@southport.solutions")
                 .SetSubject("Test Email Stream Attachment Multiple Recipients")
                 .AddAttachments(new EmailAttachmentStream(stream, "dummy_stream.pdf", "application/pdf"))
+                .AddAttachments(new EmailAttachmentString(stringAttachmentContent, "test.txt"))
                 .SetText("This is a test email.").Send();
 
             Assert.Equal(2, responses.Count());
@@ -129,7 +134,8 @@ namespace Southport.Messaging.Email.MailGun.Test
 
             foreach (var requestBody in capturingHandler.RequestBodies)
             {
-                Assert.True(ContainsSequence(requestBody, expectedBytes), "Request body does not contain the full attachment bytes.");
+                Assert.True(ContainsSequence(requestBody, expectedStreamBytes), "Request body does not contain the full stream attachment bytes.");
+                Assert.True(ContainsSequence(requestBody, expectedStringBytes), "Request body does not contain the full string attachment bytes.");
             }
         }
 
