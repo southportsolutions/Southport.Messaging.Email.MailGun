@@ -20,6 +20,7 @@ public class MailGunMessage : IMailGunMessage
     private readonly HttpClient _httpClient;
     private readonly IMailGunOptions _options;
     private readonly List<Stream> _streams = new();
+    private readonly Dictionary<IEmailAttachment, byte[]> _attachmentBytes = new();
 
     #region FromAddress
 
@@ -868,10 +869,28 @@ public class MailGunMessage : IMailGunMessage
 
     private void AddAttachment(IEmailAttachment attachment, ref MultipartFormDataContent content)
     {
-        // 1) If attachment exposes a Stream property named "ContentStream" use it directly
+        // 1) Stream attachment: the source is read once into a byte array shared by every recipient.
+        //    Each recipient's MultipartFormDataContent is disposed after its send, which disposes the StreamContent's stream.
         if (attachment is EmailAttachmentStream { Content: not null } streamAttachment)
         {
-            var streamContent = new StreamContent(streamAttachment.Content);
+            if (!_attachmentBytes.TryGetValue(streamAttachment, out var attachmentBytes))
+            {
+                var sourceStream = streamAttachment.Content;
+                if (sourceStream.CanSeek)
+                {
+                    sourceStream.Position = 0;
+                }
+
+                using var buffer = new MemoryStream();
+                sourceStream.CopyTo(buffer);
+                attachmentBytes = buffer.ToArray();
+                _attachmentBytes[streamAttachment] = attachmentBytes;
+            }
+
+            var ms = new MemoryStream(attachmentBytes);
+            _streams.Add(ms);
+
+            var streamContent = new StreamContent(ms);
             streamContent.Headers.Add("Content-Type", streamAttachment.Type);
             content.Add(streamContent, "attachment", streamAttachment.Filename);
             return;
@@ -888,25 +907,21 @@ public class MailGunMessage : IMailGunMessage
             return;
         }
 
-        // 3) Fallback: assume a string property `Content` exists (as used elsewhere in the file)
-        //    This preserves existing behavior for in-memory string content.
+        // 3) String attachment: the string is UTF-8 encoded once and the bytes are shared by every recipient.
         if (attachment is EmailAttachmentString { Content: not null } emailAttachmentString)
         {
-            var streamContentFallback = new StreamContent(GetStream(emailAttachmentString.Content));
-            streamContentFallback.Headers.Add("Content-Type", emailAttachmentString.Type);
-            content.Add(streamContentFallback, "attachment", emailAttachmentString.Filename);
-        }
-    }
+            if (!_attachmentBytes.TryGetValue(emailAttachmentString, out var attachmentBytes))
+            {
+                attachmentBytes = Encoding.UTF8.GetBytes(emailAttachmentString.Content);
+                _attachmentBytes[emailAttachmentString] = attachmentBytes;
+            }
 
-    private Stream GetStream(string content)
-    {
-        var stream = new MemoryStream();
-        var sw = new StreamWriter(stream, Encoding.UTF8);
-        sw.Write(content);
-        sw.Flush(); //otherwise you are risking empty stream
-        stream.Seek(0, SeekOrigin.Begin);
-        _streams.Add(stream);
-        return stream;
+            var ms = new MemoryStream(attachmentBytes);
+            _streams.Add(ms);
+            var streamContent = new StreamContent(ms);
+            streamContent.Headers.Add("Content-Type", emailAttachmentString.Type);
+            content.Add(streamContent, "attachment", emailAttachmentString.Filename);
+        }
     }
 
     #endregion
@@ -982,6 +997,7 @@ public class MailGunMessage : IMailGunMessage
         }
 
         _streams.Clear();
+        _attachmentBytes.Clear();
     }
 
     public void Dispose()
@@ -1013,5 +1029,6 @@ public class MailGunMessage : IMailGunMessage
         }
 
         _streams.Clear();
+        _attachmentBytes.Clear();
     }
 }

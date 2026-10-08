@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -98,6 +98,84 @@ namespace Southport.Messaging.Email.MailGun.Test
                 _output.WriteLine(response.Message);
                 Assert.True(response.IsSuccessful);
                 Assert.Equal(emailAddress, response.EmailRecipient.EmailAddress.Address);
+            }
+        }
+
+        /// <summary>
+        /// When one stream attachment and one string attachment are sent to two recipients, each recipient's request body contains both attachments in full.
+        /// </summary>
+        [Fact]
+        public async Task Send_Attachments_MultipleRecipients_EachRequestContainsAttachments()
+        {
+            await using var stream = await FileHelpers.OpenFileStreamAsync();
+            var expectedStreamBytes = await FileHelpers.StreamToBytesAsync(stream);
+            stream.Position = 0;
+            var stringAttachmentContent = "Test attachment content.";
+            var expectedStringBytes = System.Text.Encoding.UTF8.GetBytes(stringAttachmentContent);
+
+            // TestEmailAddresses is left empty so each To address produces exactly one request.
+            var options = new MailGunOptions { ApiKey = "test-api-key", Domain = "test.example.com" };
+            var capturingHandler = new CapturingHttpMessageHandler();
+            using var httpClient = new HttpClient(capturingHandler);
+            var factory = new MailGunMessageFactory(httpClient, Options.Create(options));
+
+            await using var message = factory.Create();
+            var responses = await message
+                .SetFromAddress("test2@southport.solutions")
+                .AddToAddress("test1@southport.solutions")
+                .AddToAddress("test3@southport.solutions")
+                .SetSubject("Test Email Stream Attachment Multiple Recipients")
+                .AddAttachments(new EmailAttachmentStream(stream, "dummy_stream.pdf", "application/pdf"))
+                .AddAttachments(new EmailAttachmentString(stringAttachmentContent, "test.txt"))
+                .SetText("This is a test email.").Send();
+
+            Assert.Equal(2, responses.Count());
+            Assert.Equal(2, capturingHandler.RequestBodies.Count);
+
+            foreach (var requestBody in capturingHandler.RequestBodies)
+            {
+                Assert.True(ContainsSequence(requestBody, expectedStreamBytes), "Request body does not contain the full stream attachment bytes.");
+                Assert.True(ContainsSequence(requestBody, expectedStringBytes), "Request body does not contain the full string attachment bytes.");
+            }
+        }
+
+        /// <summary>
+        /// Returns true when <paramref name="sequence"/> appears contiguously inside <paramref name="source"/>.
+        /// </summary>
+        private static bool ContainsSequence(byte[] source, byte[] sequence)
+        {
+            if (sequence.Length == 0 || source.Length < sequence.Length)
+            {
+                return false;
+            }
+
+            for (var start = 0; start <= source.Length - sequence.Length; start++)
+            {
+                if (source.AsSpan(start, sequence.Length).SequenceEqual(sequence))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Records each outgoing request body and returns a successful MailGun-style response without calling the network.
+        /// </summary>
+        private sealed class CapturingHttpMessageHandler : HttpMessageHandler
+        {
+            public List<byte[]> RequestBodies { get; } = new();
+
+            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
+            {
+                var requestBody = await request.Content.ReadAsByteArrayAsync(cancellationToken);
+                RequestBodies.Add(requestBody);
+
+                return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{\"id\":\"<test@mailgun>\",\"message\":\"Queued. Thank you.\"}")
+                };
             }
         }
 

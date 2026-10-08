@@ -9,7 +9,7 @@
     <Description>MailGun Implementation of the Southport.Messaging.Email.Core</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>Updated attachment support, to support byte arrays and streams.</PackageReleaseNotes>
+    <PackageReleaseNotes>Bug Fix.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
