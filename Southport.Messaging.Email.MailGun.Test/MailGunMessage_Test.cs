@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -98,6 +98,78 @@ namespace Southport.Messaging.Email.MailGun.Test
                 _output.WriteLine(response.Message);
                 Assert.True(response.IsSuccessful);
                 Assert.Equal(emailAddress, response.EmailRecipient.EmailAddress.Address);
+            }
+        }
+
+        /// <summary>
+        /// When one stream attachment is sent to two recipients, each recipient's request body contains the full attachment bytes.
+        /// </summary>
+        [Fact]
+        public async Task Send_AttachmentStream_MultipleRecipients_EachRequestContainsAttachment()
+        {
+            await using var stream = await FileHelpers.OpenFileStreamAsync();
+            var expectedBytes = await FileHelpers.StreamToBytesAsync(stream);
+            stream.Position = 0;
+
+            var capturingHandler = new CapturingHttpMessageHandler();
+            using var httpClient = new HttpClient(capturingHandler);
+            var factory = new MailGunMessageFactory(httpClient, Options.Create(_options));
+
+            await using var message = factory.Create();
+            var responses = await message
+                .SetFromAddress("test2@southport.solutions")
+                .AddToAddress("test1@southport.solutions")
+                .AddToAddress("test3@southport.solutions")
+                .SetSubject("Test Email Stream Attachment Multiple Recipients")
+                .AddAttachments(new EmailAttachmentStream(stream, "dummy_stream.pdf", "application/pdf"))
+                .SetText("This is a test email.").Send();
+
+            Assert.Equal(2, responses.Count());
+            Assert.Equal(2, capturingHandler.RequestBodies.Count);
+
+            foreach (var requestBody in capturingHandler.RequestBodies)
+            {
+                Assert.True(ContainsSequence(requestBody, expectedBytes), "Request body does not contain the full attachment bytes.");
+            }
+        }
+
+        /// <summary>
+        /// Returns true when <paramref name="sequence"/> appears contiguously inside <paramref name="source"/>.
+        /// </summary>
+        private static bool ContainsSequence(byte[] source, byte[] sequence)
+        {
+            if (sequence.Length == 0 || source.Length < sequence.Length)
+            {
+                return false;
+            }
+
+            for (var start = 0; start <= source.Length - sequence.Length; start++)
+            {
+                if (source.AsSpan(start, sequence.Length).SequenceEqual(sequence))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Records each outgoing request body and returns a successful MailGun-style response without calling the network.
+        /// </summary>
+        private sealed class CapturingHttpMessageHandler : HttpMessageHandler
+        {
+            public List<byte[]> RequestBodies { get; } = new();
+
+            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
+            {
+                var requestBody = await request.Content.ReadAsByteArrayAsync(cancellationToken);
+                RequestBodies.Add(requestBody);
+
+                return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{\"id\":\"<test@mailgun>\",\"message\":\"Queued. Thank you.\"}")
+                };
             }
         }
 

@@ -868,10 +868,22 @@ public class MailGunMessage : IMailGunMessage
 
     private void AddAttachment(IEmailAttachment attachment, ref MultipartFormDataContent content)
     {
-        // 1) If attachment exposes a Stream property named "ContentStream" use it directly
+        // 1) Stream attachment: copy into a new MemoryStream per recipient. Each recipient's
+        //    MultipartFormDataContent is disposed after its send, which disposes the StreamContent's stream.
         if (attachment is EmailAttachmentStream { Content: not null } streamAttachment)
         {
-            var streamContent = new StreamContent(streamAttachment.Content);
+            var sourceStream = streamAttachment.Content;
+            if (sourceStream.CanSeek)
+            {
+                sourceStream.Position = 0;
+            }
+
+            var ms = new MemoryStream();
+            sourceStream.CopyTo(ms);
+            ms.Position = 0;
+            _streams.Add(ms);
+
+            var streamContent = new StreamContent(ms);
             streamContent.Headers.Add("Content-Type", streamAttachment.Type);
             content.Add(streamContent, "attachment", streamAttachment.Filename);
             return;
